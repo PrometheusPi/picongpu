@@ -985,7 +985,7 @@ private:
              globalOffset,
              currentStep, *cellDescription, 
 	     freqFkt,
-	     simBox.getGlobalSize()	     
+	     SubGrid<simDim>::getInstance().getSimulationBox().getGlobalSize()	     
              );
 
         if (dumpPeriod != 0 && currentStep % dumpPeriod == 0)

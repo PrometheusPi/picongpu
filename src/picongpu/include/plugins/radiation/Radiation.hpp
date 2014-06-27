@@ -164,11 +164,12 @@ public:
 
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
-        if (currentStep >= radStart)
+	//        if (currentStep >= radStart)
         {
             // radEnd = 0 is default, calculates radiation until simulation
             // end
-            if (currentStep <= radEnd || radEnd == 0)
+          //  if (currentStep <= radEnd || radEnd == 0)
+	  if ( ((currentStep >= 700)&&(currentStep <=710)) || ((currentStep >= 1001)&&(currentStep <=1010)) )
             {
                 log<radLog::SIMULATION_STATE > ("radiation gets calculated: timestep %1% ") % currentStep;
 
@@ -179,7 +180,7 @@ public:
 
                 log<radLog::SIMULATION_STATE > ("radiation got calculated: timestep %1% ") % currentStep;
             }
-        }
+	    //}
     }
 
     void pluginRegisterHelp(po::options_description& desc)

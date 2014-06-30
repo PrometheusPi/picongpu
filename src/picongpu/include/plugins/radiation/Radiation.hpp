@@ -165,11 +165,11 @@ public:
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
 	//        if (currentStep >= radStart)
-        {
+        //{
             // radEnd = 0 is default, calculates radiation until simulation
             // end
           //  if (currentStep <= radEnd || radEnd == 0)
-	  if ( ((currentStep >= 700)&&(currentStep <=710)) || ((currentStep >= 1001)&&(currentStep <=1010)) )
+	  if ( ((currentStep >= 691)&&(currentStep <=700)) || ((currentStep >= 991)&&(currentStep <=1000)) )
             {
                 log<radLog::SIMULATION_STATE > ("radiation gets calculated: timestep %1% ") % currentStep;
 

@@ -169,7 +169,7 @@ public:
             // radEnd = 0 is default, calculates radiation until simulation
             // end
           //  if (currentStep <= radEnd || radEnd == 0)
-	  if ( ((currentStep >= 691)&&(currentStep <=700)) || ((currentStep >= 991)&&(currentStep <=1000)) )
+	  if ( ((currentStep >= 591)&&(currentStep <=600)) || ((currentStep >= 1191)&&(currentStep <=1200)) )
             {
                 log<radLog::SIMULATION_STATE > ("radiation gets calculated: timestep %1% ") % currentStep;
 

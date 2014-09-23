@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, 
+ *                     Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -19,9 +20,7 @@
  */
 
 
-
-#ifndef SUMCURRENTS_HPP
-#define	SUMCURRENTS_HPP
+#pragma once
 
 #include <iostream>
 
@@ -201,5 +200,4 @@ private:
 }
 
 
-#endif	/* SUMCURRENTS_HPP */
 

@@ -85,6 +85,8 @@ __global__ void kernelCloneParticles(ParticlesBox<MYFRAME, simDim> myBox, Partic
         PMACC_AUTO(parDest, ((*myFrame)[threadIdx.x]));
         PMACC_AUTO(parSrc, ((*frame)[threadIdx.x]));
         assign(parDest, parSrc);
+        // reduce Ion weighting by factor two to simulate helium
+        parDest[weighting_] *= 0.5;
         __syncthreads();
         if (threadIdx.x == 0)
         {

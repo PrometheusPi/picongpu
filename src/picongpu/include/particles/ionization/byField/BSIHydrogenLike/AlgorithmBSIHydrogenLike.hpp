@@ -65,17 +65,17 @@ namespace ionization
         operator()( const BType bField, const EType eField, ParticleType& parentIon )
         {
 
-            const float_X protonNumber  = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
-            float_X chargeState         = attribute::getChargeState(parentIon);
+            const float_X protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
+            float_X chargeState = attribute::getChargeState(parentIon);
 
             /* verify that ion is not completely ionized */
             if (chargeState < protonNumber)
             {
-                uint32_t cs                 = math::float2int_rd(chargeState);
+                uint32_t cs = math::float2int_rd(chargeState);
                 /* ionization potential in atomic units */
-                const float_X iEnergy       = GetIonizationEnergies<ParticleType>::type()[cs];
+                const float_X iEnergy = GetIonizationEnergies<ParticleType>::type()[cs];
                 /* critical field strength in atomic units */
-                float_X critField           = math::pow(iEnergy,float_X(2.)) / protonNumber;
+                float_X critField = iEnergy*iEnergy / protonNumber;
                 /* ionization condition */
                 if (math::abs(eField) / ATOMIC_UNIT_EFIELD >= critField)
                 {

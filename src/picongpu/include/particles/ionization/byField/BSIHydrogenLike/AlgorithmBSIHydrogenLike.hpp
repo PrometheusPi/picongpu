@@ -75,7 +75,7 @@ namespace ionization
                 /* ionization potential in atomic units */
                 const float_X iEnergy = GetIonizationEnergies<ParticleType>::type()[cs];
                 /* critical field strength in atomic units */
-                float_X critField = iEnergy*iEnergy / protonNumber;
+                float_X critField = 0.25 * iEnergy*iEnergy / protonNumber;
                 /* ionization condition */
                 if (math::abs(eField) / ATOMIC_UNIT_EFIELD >= critField)
                 {

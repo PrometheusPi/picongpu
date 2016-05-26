@@ -85,6 +85,13 @@ namespace ionization
             /* conservation of momentum
              * \todo add conservation of mass */
             parentIon[momentum_] -= electronMomentum;
+
+            if(GetAtomicNumbers<T_parentIon>::type::numberOfProtons==7.0f
+               && parentIon[boundElectrons_] < 2)
+            {
+                childElectron[N_sShellFlag_] = true;
+            }
+
         }
     };
 

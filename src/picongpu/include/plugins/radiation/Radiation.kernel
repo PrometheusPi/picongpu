@@ -246,7 +246,7 @@ void kernelRadiationParticles(ParBox pb,
                      * to the radiation calculation by checking its flag.
                      */
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
-                    if (par[radiationFlag_] && par[N_sShellFlag_])
+                    if (par[radiationFlag_])// && par[N_sShellFlag_])
 #endif
                     saveParticleAt = nvidia::atomicAllInc(&counter_s);
                     /* for information:

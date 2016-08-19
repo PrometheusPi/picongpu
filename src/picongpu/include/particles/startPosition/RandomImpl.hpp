@@ -42,6 +42,10 @@ namespace nvrng = nvidia::rng;
 namespace rngMethods = nvidia::rng::methods;
 namespace rngDistributions = nvidia::rng::distributions;
 
+  //template<typename ST, typename ParamClass, typename IsAtomic>
+template<typename ST, typename ParamClass, bool>
+struct calcMacroParCfg;
+
 template<typename T_ParamClass, typename T_SpeciesType>
 struct RandomImpl
 {
@@ -92,6 +96,11 @@ struct RandomImpl
         return result;
     }
 
+
+
+
+
+
     /** If the particles to initialize (numParsPerCell) end up with a
      *  related particle weighting (macroWeighting) below MIN_WEIGHTING,
      *  reduce the number of particles if possible to satisfy this condition.
@@ -101,38 +110,14 @@ struct RandomImpl
      */
     DINLINE MacroParticleCfg mapRealToMacroParticle(const float_X realParticlesPerCell)
     {
-	const float_X protonNumber  = GetAtomicNumbers<SpeciesType>::type::numberOfProtons;
-	//PMACC_CASSERT_MSG( Proton_Number, protonNumber==0.0 );
-        uint32_t numParsPerCell = ParamClass::numParticlesPerCell;
-        float_X macroWeighting = float_X(0.0);
-        if (numParsPerCell > 0)
-            macroWeighting = realParticlesPerCell / float_X(numParsPerCell) * ( protonNumber - float_X(1.0) );
-	// Hack for reducing ionization of dopant species. Helium remains unaffected, while Nitrogen is culled to 1/6 of original population.
+        typedef typename SpeciesType::FrameType FrameType;
+        typedef typename HasFlag<FrameType, atomicNumbers<> >::type hasAtomicNumbers;
+
 	const float_X rngNum = rng();
-	if (rngNum > float_X(1.0)/(protonNumber-float_X(1.0)))
-        {
-	    numParsPerCell = 0;
-	    macroWeighting = float_X(0.0);
-        }
-	//if (threadIdx.x==0 && threadIdx.y==0 && threadIdx.z==0 && blockIdx.x==0 && blockIdx.y==0 && blockIdx.z==0 )
-	//    printf( "ProtonNumber: %4.2f, Minimum Probability: %4.2f, Actual Probability: %4.2f \n", protonNumber, float_X(1.0)/(protonNumber-float_X(1.0)), rngNum );
-        //threadIdx.x==0
-	//blockIdx.x==0
+	const calcMacroParCfg<SpeciesType, ParamClass, hasAtomicNumbers::value> tmp;	
+	MacroParticleCfg macroParCfg = tmp.operator()(realParticlesPerCell, rngNum);
 
-        while (macroWeighting < MIN_WEIGHTING &&
-               numParsPerCell > 0)
-        {
-            --numParsPerCell;
-            if (numParsPerCell > 0)
-                macroWeighting = realParticlesPerCell / float_X(numParsPerCell) * ( protonNumber - float_X(1.0) );
-            else
-                macroWeighting = float_X(0.0);
-        }
-        MacroParticleCfg macroParCfg;
-        macroParCfg.weighting = macroWeighting;
-        macroParCfg.numParticlesPerCell = numParsPerCell;
-
-        return macroParCfg;
+	return macroParCfg;
     }
 
 protected:
@@ -143,6 +128,84 @@ protected:
     PMACC_ALIGN(localCells, DataSpace<simDim>);
     PMACC_ALIGN(totalGpuOffset, DataSpace<simDim>);
 };
+
+
+  //template<typename ST, typename ParamClass, typename IsAtomic>
+template<typename ST, typename ParamClass, bool>
+struct calcMacroParCfg
+{
+  DINLINE MacroParticleCfg operator()(const float_X realParticlesPerCell, float_X rngNum) const
+  {
+    uint32_t numParsPerCell = ParamClass::numParticlesPerCell;
+    float_X macroWeighting = float_X(0.0);
+    if (numParsPerCell > 0)
+      macroWeighting = realParticlesPerCell / float_X(numParsPerCell);
+
+    while (macroWeighting < MIN_WEIGHTING &&
+	   numParsPerCell > 0)
+      {
+	--numParsPerCell;
+	if (numParsPerCell > 0)
+	  macroWeighting = realParticlesPerCell / float_X(numParsPerCell);
+	else
+	  macroWeighting = float_X(0.0);
+      }
+
+    MacroParticleCfg macroParCfg;
+    macroParCfg.weighting = macroWeighting;
+    macroParCfg.numParticlesPerCell = numParsPerCell;
+	
+    return macroParCfg;
+  }
+};
+
+
+template<typename ST, typename ParamClass>
+//struct calcMacroParCfg<ST, ParamClass, boost::mpl::true_>
+struct calcMacroParCfg<ST, ParamClass, true>
+{
+  DINLINE MacroParticleCfg operator()(const float_X realParticlesPerCell, float_X rngNum) const
+  {
+    const float_X protonNumber  = GetAtomicNumbers<ST>::type::numberOfProtons;
+    //PMACC_CASSERT_MSG( Proton_Number, protonNumber==0.0 );
+    uint32_t numParsPerCell = ParamClass::numParticlesPerCell;
+    float_X macroWeighting = float_X(0.0);
+    if (numParsPerCell > 0)
+      macroWeighting = realParticlesPerCell / float_X(numParsPerCell) * ( protonNumber - float_X(1.0) );
+	    
+    macroWeighting *= 0.5; // correction from He electron density to N ion density
+	      
+    // Hack for reducing ionization of dopant species. Helium remains unaffected, while Nitrogen is culled to 1/6 of original population.
+
+    if (rngNum > float_X(1.0)/(protonNumber-float_X(1.0)))
+      {
+	numParsPerCell = 0;
+	macroWeighting = float_X(0.0);
+      }
+
+    while (macroWeighting < MIN_WEIGHTING &&
+	   numParsPerCell > 0)
+      {
+	--numParsPerCell;
+	if (numParsPerCell > 0)
+	  macroWeighting = realParticlesPerCell / float_X(numParsPerCell) * ( protonNumber - float_X(1.0) );
+	else
+	  macroWeighting = float_X(0.0);
+      }
+
+    MacroParticleCfg macroParCfg;
+    macroParCfg.weighting = macroWeighting;
+    macroParCfg.numParticlesPerCell = numParsPerCell;
+    
+    return macroParCfg;
+  }
+};
+
+
+
+
+
+
 
 } //namespace particlesStartPosition
 } //namespace particles

@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2016 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
- *                     Richard Pausch
+ *                     Richard Pausch, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -81,6 +81,28 @@ namespace picongpu
         }
 
         /**
+         *  Simple iteration algorithm to implement Laguerre polynomials for GPUs.
+         *  @param n order of the Laguerre polynomial
+         *  @param x coordinate at which the polynomial is evaluated
+         *  @return
+         */ 
+        HDINLINE float_X simpleLaguerre( const uint32_t n, const float_X x )
+        {
+            uint32_t currentN = 1;
+            float_X laguerreNMinus1 = 1.0f;
+            float_X laguerreN = 1.0f - x;
+            float_X temp;
+            while (currentN < n)
+            {
+                temp = laguerreN;
+                laguerreN = ( (2.0f * float_X(currentN) + 1.0f - x) * laguerreN - float_X(currentN) * laguerreNMinus1 ) / float_X(currentN + 1);
+                laguerreNMinus1 = temp;
+                currentN++;
+            }
+            return laguerreN;
+        }
+
+        /**
          *
          * @param elong
          * @param phase
@@ -98,6 +120,11 @@ namespace picongpu
             // the radius of curvature of the beam's  wavefronts
             const float_X R_y = -FOCUS_POS * ( float_X(1.0) + ( y_R / FOCUS_POS )*( y_R / FOCUS_POS ) );
 
+            // initialize temporary variables
+            uint32_t m = 0;
+            float_X etrans = 0.0f;
+            float_X etrans_norm = 0.0f;
+            for ( m=0; m<MODENUMBER ; m++ ) etrans_norm += LAGUERREMODES[m];
 
             //beam waist in the near field: w_y(y=0) == W0
             const float_X w_y = W0 * algorithms::math::sqrt( float_X(1.0) + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );
@@ -106,22 +133,38 @@ namespace picongpu
 
             if( Polarisation == LINEAR_X || Polarisation == LINEAR_Z )
             {
-                elong *= math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + xi_y + phase )
-                    * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
-                          *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
-                          / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
+                for ( m=0; m<MODENUMBER ; m++ )
+                {
+                    etrans += LAGUERREMODES[m] * simpleLaguerre( m, 2.0f * r2 / w_y / w_y )
+                        * math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + ( 2*m + 1 ) * xi_y + phase )
+                        * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                              *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                              / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
+                }
+                elong *= etrans / etrans_norm;
             }
             else if( Polarisation == CIRCULAR )
             {
-                elong.x() *= math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + xi_y + phase )
-                    * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
-                          *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
-                          / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
+                for ( m=0; m<MODENUMBER ; m++ )
+                {
+                    etrans += LAGUERREMODES[m] * simpleLaguerre( m, 2.0f * r2 / w_y / w_y )
+                        * math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + ( 2*m + 1 ) * xi_y + phase )
+                        * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                              *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                              / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
+                }
+                elong.x() *= etrans / etrans_norm;
                 phase += float_X( PI / 2.0 );
-                elong.z() *= math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + xi_y + phase )
-                    * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
-                          *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
-                          / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
+                etrans = 0.0f;
+                for ( m=0; m<MODENUMBER ; m++ )
+                {
+                    etrans += LAGUERREMODES[m] * simpleLaguerre( m, 2.0f * r2 / w_y / w_y )
+                        * math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + ( 2*m + 1 ) * xi_y + phase )
+                        * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                              *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                              / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
+                }
+                elong.z() *= etrans / etrans_norm;
                 phase -= float_X( PI / 2.0 );
             }
 

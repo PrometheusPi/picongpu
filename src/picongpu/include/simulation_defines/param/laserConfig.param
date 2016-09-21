@@ -74,6 +74,13 @@ namespace picongpu
         /* laser phase shift (no shift: 0.0) */
         BOOST_CONSTEXPR_OR_CONST float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
 
+        /* Use only the 0th Laguerremode for a standard Gaussian */
+        PMACC_CONST_VECTOR(float_X,1,LAGUERREMODES, 1.0f);
+        BOOST_CONSTEXPR_OR_CONST uint32_t MODENUMBER = 0; // This can probably be coded easier?
+        /* This is just an example for a more complicated set of Laguerre modes. */
+        //PMACC_CONST_VECTOR(float_X,13,LAGUERREMODES, -1.0f, 0.0300519f, 0.319461f, -0.23783f, 0.0954839f, 0.0318653f, -0.144547f, 0.0249208f, -0.111989f, 0.0434385f, -0.030038f, -0.00896321f, -0.0160788f);
+        //BOOST_CONSTEXPR_OR_CONST uint32_t MODENUMBER = 12;
+
         enum PolarisationType
         {
             LINEAR_X = 1u,

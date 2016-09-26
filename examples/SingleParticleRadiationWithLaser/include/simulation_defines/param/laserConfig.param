@@ -75,7 +75,7 @@ BOOST_CONSTEXPR_OR_CONST float_64 PULSE_INIT = 20.0;
 BOOST_CONSTEXPR_OR_CONST float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
 
 /* Use only the 0th Laguerremode for a standard Gaussian */
-PMACC_CONST_VECTOR(float_X,1,LAGUERREMODES, 1.0f);
+PMACC_CONST_VECTOR(float_X, 1, LAGUERREMODES, 1.0);
 BOOST_CONSTEXPR_OR_CONST uint32_t MODENUMBER = 0;
 
 enum PolarisationType

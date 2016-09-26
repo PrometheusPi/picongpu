@@ -89,13 +89,13 @@ namespace picongpu
         HDINLINE float_X simpleLaguerre( const uint32_t n, const float_X x )
         {
             uint32_t currentN = 1;
-            float_X laguerreNMinus1 = 1.0f;
-            float_X laguerreN = 1.0f - x;
+            float_X laguerreNMinus1 = float_X(1.0);
+            float_X laguerreN = float_X(1.0) - x;
             float_X temp;
             while (currentN < n)
             {
                 temp = laguerreN;
-                laguerreN = ( (2.0f * float_X(currentN) + 1.0f - x) * laguerreN - float_X(currentN) * laguerreNMinus1 ) / float_X(currentN + 1);
+                laguerreN = ( ( float_X(2.0) * float_X(currentN) + float_X(1.0) - x) * laguerreN - float_X(currentN) * laguerreNMinus1 ) / float_X(currentN + 1);
                 laguerreNMinus1 = temp;
                 currentN++;
             }
@@ -122,9 +122,10 @@ namespace picongpu
 
             // initialize temporary variables
             uint32_t m = 0;
-            float_X etrans = 0.0f;
-            float_X etrans_norm = 0.0f;
-            for ( m=0; m<MODENUMBER ; m++ ) etrans_norm += LAGUERREMODES[m];
+            float_X etrans = float_X(0.0);
+            float_X etrans_norm = float_X(0.0);
+            PMACC_CASSERT_MSG(MODENUMBER_must_be_smaller_than_number_of_entries_in_LAGUERREMODES_vector, MODENUMBER<LAGUERREMODES_t::dim);
+	    for ( m = 0 ; m < MODENUMBER ; m++ ) etrans_norm += LAGUERREMODES[m];
 
             //beam waist in the near field: w_y(y=0) == W0
             const float_X w_y = W0 * algorithms::math::sqrt( float_X(1.0) + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );
@@ -133,9 +134,9 @@ namespace picongpu
 
             if( Polarisation == LINEAR_X || Polarisation == LINEAR_Z )
             {
-                for ( m=0; m<MODENUMBER ; m++ )
+                for ( m = 0 ; m < MODENUMBER ; m++ )
                 {
-                    etrans += LAGUERREMODES[m] * simpleLaguerre( m, 2.0f * r2 / w_y / w_y )
+                    etrans += LAGUERREMODES[m] * simpleLaguerre( m, float_X(2.0) * r2 / w_y / w_y )
                         * math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + ( 2*m + 1 ) * xi_y + phase )
                         * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
                               *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
@@ -145,9 +146,9 @@ namespace picongpu
             }
             else if( Polarisation == CIRCULAR )
             {
-                for ( m=0; m<MODENUMBER ; m++ )
+                for ( m = 0 ; m < MODENUMBER ; m++ )
                 {
-                    etrans += LAGUERREMODES[m] * simpleLaguerre( m, 2.0f * r2 / w_y / w_y )
+                    etrans += LAGUERREMODES[m] * simpleLaguerre( m, float_X(2.0) * r2 / w_y / w_y )
                         * math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + ( 2*m + 1 ) * xi_y + phase )
                         * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
                               *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
@@ -155,10 +156,10 @@ namespace picongpu
                 }
                 elong.x() *= etrans / etrans_norm;
                 phase += float_X( PI / 2.0 );
-                etrans = 0.0f;
-                for ( m=0; m<MODENUMBER ; m++ )
+                etrans = float_X(0.0);
+                for ( m = 0 ; m < MODENUMBER ; m++ )
                 {
-                    etrans += LAGUERREMODES[m] * simpleLaguerre( m, 2.0f * r2 / w_y / w_y )
+                    etrans += LAGUERREMODES[m] * simpleLaguerre( m, float_X(2.0) * r2 / w_y / w_y )
                         * math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + ( 2*m + 1 ) * xi_y + phase )
                         * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
                               *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )

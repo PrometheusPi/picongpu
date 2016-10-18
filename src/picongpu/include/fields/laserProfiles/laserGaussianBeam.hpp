@@ -125,7 +125,7 @@ namespace picongpu
             float_X etrans = float_X(0.0);
             float_X etrans_norm = float_X(0.0);
             PMACC_CASSERT_MSG(MODENUMBER_must_be_smaller_than_number_of_entries_in_LAGUERREMODES_vector, MODENUMBER<LAGUERREMODES_t::dim);
-	    for ( m = 0 ; m < MODENUMBER ; m++ ) etrans_norm += LAGUERREMODES[m];
+            for ( m = 0 ; m < MODENUMBER ; m++ ) etrans_norm += LAGUERREMODES[m];
 
             //beam waist in the near field: w_y(y=0) == W0
             const float_X w_y = W0 * algorithms::math::sqrt( float_X(1.0) + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );

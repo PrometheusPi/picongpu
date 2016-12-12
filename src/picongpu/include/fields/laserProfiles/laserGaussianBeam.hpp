@@ -88,15 +88,19 @@ namespace picongpu
          */ 
         HDINLINE float_X simpleLaguerre( const uint32_t n, const float_X x )
         {
+            //Result for special case n == 0
+            if (n == 0) return float_X(1.0);
             uint32_t currentN = 1;
             float_X laguerreNMinus1 = float_X(1.0);
             float_X laguerreN = float_X(1.0) - x;
-            float_X temp;
+            float_X laguerreNPlus1 = float_X(0.0);
             while (currentN < n)
             {
-                temp = laguerreN;
-                laguerreN = ( ( float_X(2.0) * float_X(currentN) + float_X(1.0) - x) * laguerreN - float_X(currentN) * laguerreNMinus1 ) / float_X(currentN + 1);
-                laguerreNMinus1 = temp;
+                //Core statement of the algorithm
+                laguerreNPlus1 = ( ( float_X(2.0) * float_X(currentN) + float_X(1.0) - x) * laguerreN - float_X(currentN) * laguerreNMinus1 ) / float_X(currentN + 1);
+                //Advance by one order
+                laguerreNMinus1 = laguerreN;
+                laguerreN = laguerreNPlus1;
                 currentN++;
             }
             return laguerreN;

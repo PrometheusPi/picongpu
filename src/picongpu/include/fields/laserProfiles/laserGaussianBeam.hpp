@@ -85,7 +85,7 @@ namespace picongpu
          *  @param n order of the Laguerre polynomial
          *  @param x coordinate at which the polynomial is evaluated
          *  @return
-         */ 
+         */
         HDINLINE float_X simpleLaguerre( const uint32_t n, const float_X x )
         {
             //Result for special case n == 0

@@ -58,7 +58,7 @@ struct SetAttributeImpl : private T_ValueFunctor
 
             /* in this case: 'assign' the number of protons to the number of bound electrons
              * \see particleConfig.param for the ValueFunctor */
-            ValueFunctor::operator()(particle[boundElectrons_], protonNumber);
+            ValueFunctor::operator()(particle[boundElectrons_], protonNumber - ParamClass::initChargeState );
         }
     }
 

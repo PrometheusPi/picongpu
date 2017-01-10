@@ -47,7 +47,7 @@ namespace picongpu
             float_X etrans_norm = float_X(0.0);
             for ( uint32_t m = 0 ; m <= MODENUMBER ; ++m )
                 etrans_norm += LAGUERREMODES[m];
-            PMACC_VERIFY_MSG( algorithms::math::abs(etrans_norm) > std::numeric_limits<float_X>::epsilon(), "Sum of LAGUERREMODES can not be 0." );
+            //PMACC_VERIFY_MSG( algorithms::math::abs(etrans_norm) > std::numeric_limits<float_X>::epsilon(), "Sum of LAGUERREMODES can not be 0." );
 
 
             // a symmetric pulse will be initialized at position z=0 for
@@ -135,7 +135,7 @@ namespace picongpu
             float_X etrans = float_X(0.0);
             float_X etrans_norm = float_X(0.0);
             PMACC_CASSERT_MSG(MODENUMBER_must_be_smaller_than_number_of_entries_in_LAGUERREMODES_vector, MODENUMBER<LAGUERREMODES_t::dim);
-            PMACC_VERIFY_MSG( MODENUMBER<LAGUERREMODES_t::dim, "MODENUMBER must be smaller than number of entries in LAGUERREMODES vector." );
+            //PMACC_VERIFY_MSG( MODENUMBER<LAGUERREMODES_t::dim, "MODENUMBER must be smaller than number of entries in LAGUERREMODES vector." );
             for ( uint32_t m = 0 ; m <= MODENUMBER ; ++m )
                 etrans_norm += LAGUERREMODES[m];
 

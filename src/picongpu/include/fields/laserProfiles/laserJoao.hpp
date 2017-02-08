@@ -99,13 +99,15 @@ HDINLINE float3_X laserTransversal(float3_X elong, const float_X, const float_X 
     const float_X sinh2 = sinh * sinh;
 
     //    printf("joao laser: %f  <  %f \n", posX, 0.5 * jetWidth);
-    if ( math::abs( posX )  <  0.5 * jetWidth )
+    if ( (math::abs( posX )  <  0.5 * jetWidth) ||  ( (math::abs( posX ) > 20.* W0_X)  || (math::abs( posZ ) > 20.* W0_Z) ))
     {
         return elong * 0.0;
     }
     else
     {
-        return elong * math::exp( float_X(-1.0)*(exp_x + exp_z)) * math::sqrt( 1.0 + b * sinh2 ) * math::cos( -1.0 *  math::atan( c * sinh ) );
+        const float3_X ret = elong * math::exp( float_X(-1.0)*(exp_x + exp_z)) * math::sqrt( 1.0 + b * sinh2 ) * math::cos( -1.0 *  math::atan( c * sinh ) );
+        //printf("JoaoLaser: E=%f  x=%f  z=%f \n", math::abs(ret), posX, posZ);
+        return ret;
     }
 }
 

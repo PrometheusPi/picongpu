@@ -38,46 +38,51 @@ namespace SI
      *
      * unit: ELEMENTS/m^3
      */
-    constexpr float_64 BASE_DENSITY_SI = 1.e25;
+    constexpr float_64 BASE_DENSITY_SI = 1.e23;
 }
 
 namespace densityProfiles
 {
-    PMACC_STRUCT(GaussianParameter,
-        /** Profile Formula:
-         *   constexpr float_X exponent = abs((y - gasCenter_SI) / gasSigma_SI);
-         *   constexpr float_X density = exp(gasFactor * pow(exponent, gasPower));
-         *
-         *   takes `gasCenterLeft_SI      for y < gasCenterLeft_SI`,
-         *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
-         *   and exponent = float_X(0.0)  for gasCenterLeft_SI < y < gasCenterRight_SI
-         */
-        (PMACC_C_VALUE(float_X, gasFactor, -1.0))
-        (PMACC_C_VALUE(float_X, gasPower, 4.0))
-
+    PMACC_STRUCT(LinearExponentialParam,
         /** height of vacuum area on top border
          *
-         *  this vacuum is important because of the laser initialization,
-         *  which is done in the first cells of the simulation and
-         *  assumes a charge-free volume
-         *  unit: cells
+         * this vacuum is important because of the laser initialization,
+         * which is done in the first cells of the simulation and
+         * assumes a charge-free volume
+         * unit: cells
          */
-        (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
+        (PMACC_C_VALUE(uint32_t, vacuumCellsY, 1900))
 
-        /** The central position of the gas distribution
-          *  unit: meter
-          */
-        (PMACC_C_VALUE(float_64, gasCenterLeft_SI, 8.0e-5))
-        (PMACC_C_VALUE(float_64, gasCenterRight_SI, 10.0e-5))
+        /** Y-Position where the linear slope ends and the exponential slope
+         *  begins
+         *  unit: meter
+         */
+        (PMACC_C_VALUE(float_64, gasYMax_SI, 2000 * 800.e-9/20.))
 
-        /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
-          *  unit: meter
-          */
-        (PMACC_C_VALUE(float_64, gasSigmaLeft_SI, 8.0e-5))
-        (PMACC_C_VALUE(float_64, gasSigmaRight_SI, 8.0e-5))
-    ); /* struct GaussianParam */
+        /** Parameters for the linear slope:
+         *  For Y <= gasYMax_SI:
+         *    \rho / BASE_DENSITY = A * Y + B
+         *                        = element [0.0; 1.0]
+         *  unit for A: 1/m
+         *  unit for B: none
+         */
+        (PMACC_C_VALUE(float_64, gasA_SI, 1.0 / 100.))
 
-    /* definition of density with Gaussian profile */
-    typedef GaussianImpl< GaussianParameter > Gaussian;
+        /** Parameters for the exponential slope
+         *  For Y > gasYMax_SI:
+         *    let Y' = Y - gasYMax_SI
+         *    \rho = exp[ - Y' * D ]
+         *         = element [0.0; 1.0]
+         *  unit: 1/m
+         */
+        (PMACC_C_VALUE(float_64, gasD_SI, 0.0e-3))
+
+        (PMACC_C_VALUE(float_64, gasB, 0.0))
+    ); /* struct LinearExponentialParam */
+
+    /* definition of gas with linear start slop and exponential end slope */
+    typedef LinearExponentialImpl<LinearExponentialParam> LinearExponential;
+
 }
+
 }

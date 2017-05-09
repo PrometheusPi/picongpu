@@ -41,7 +41,7 @@ namespace picongpu
 /* Load pre-defined background field */
 namespace templates
 {
-/* Traveling-wave Thomson scattering laser pulse */
+/* Plane-wave laser with temporally increasing amplitude */
 namespace pwte
 {
 
@@ -160,23 +160,23 @@ public:
     HDINLINE float_T
     calcTWTSBz_Ex( const float3_64& pos, const float_64 time ) const;
 
-    /** Calculate the By(r,t) field, when electric field vector (0,Ey,0)
-     *  lies within the pulse-front-tilt plane (y,z)
-     *
-     * \param pos Spatial position of the target field.
-     * \param time Absolute time (SI, including all offsets and transformations)
-     *  for calculating the field */
-    HDINLINE float_T
-    calcTWTSBx( const float3_64& pos, const float_64 time ) const;
+    ///** Calculate the By(r,t) field, when electric field vector (0,Ey,0)
+     //*  lies within the pulse-front-tilt plane (y,z)
+     //*
+     //* \param pos Spatial position of the target field.
+     //* \param time Absolute time (SI, including all offsets and transformations)
+     //*  for calculating the field */
+    //HDINLINE float_T
+    //calcTWTSBx( const float3_64& pos, const float_64 time ) const;
 
-    /** Calculate the Bz(r,t) field here (electric field vector (0,Ey,0)
-     *  lies within the pulse-front-tilt plane (y,z)
-     *
-     * \param pos Spatial position of the target field.
-     * \param time Absolute time (SI, including all offsets and transformations)
-     *  for calculating the field */
-    HDINLINE float_T
-    calcTWTSBz_Ey( const float3_64& pos, const float_64 time ) const;
+    ///** Calculate the Bz(r,t) field here (electric field vector (0,Ey,0)
+     //*  lies within the pulse-front-tilt plane (y,z)
+     //*
+     //* \param pos Spatial position of the target field.
+     //* \param time Absolute time (SI, including all offsets and transformations)
+     //*  for calculating the field */
+    //HDINLINE float_T
+    //calcTWTSBz_Ey( const float3_64& pos, const float_64 time ) const;
 
     /** Calculate the B-field vector of the TWTS laser in SI units.
      * \tparam T_dim Specializes for the simulation dimension
@@ -188,18 +188,18 @@ public:
             const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
             const float_64 time) const;
 
-    /** Calculate the B-field vector of the "in-plane" polarized TWTS laser in SI units.
-     * \tparam T_dim Specializes for the simulation dimension
-     * \param cellIdx The total cell id counted from the start at timestep 0
-     * \return B-field vector of the rotated TWTS field in SI units */
-    template<unsigned T_dim>
-    HDINLINE float3_X
-    getTWTSBfield_Normalized_Ey(
-            const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
-            const float_64 time) const;
+    ///** Calculate the B-field vector of the "in-plane" polarized TWTS laser in SI units.
+     //* \tparam T_dim Specializes for the simulation dimension
+     //* \param cellIdx The total cell id counted from the start at timestep 0
+     //* \return B-field vector of the rotated TWTS field in SI units */
+    //template<unsigned T_dim>
+    //HDINLINE float3_X
+    //getTWTSBfield_Normalized_Ey(
+            //const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+            //const float_64 time) const;
 
 };
 
-} /* namespace twts */
+} /* namespace pwte */
 } /* namespace templates */
 } /* namespace picongpu */

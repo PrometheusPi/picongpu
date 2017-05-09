@@ -41,7 +41,7 @@ namespace picongpu
 /* Load pre-defined background field */
 namespace templates
 {
-/* Traveling-wave Thomson scattering laser pulse */
+/* Plane-wave laser with temporally increasing amplitude */
 namespace pwte
 {
 
@@ -151,14 +151,14 @@ public:
     HDINLINE float_T
     calcTWTSEx( const float3_64& pos, const float_64 time ) const;
 
-    /** Calculate the Ey(r,t) field here (electric field vector in pulse-front-tilt plane)
-     *
-     * \param pos Spatial position of the target field
-     * \param time Absolute time (SI, including all offsets and transformations)
-     *  for calculating the field
-     * \return Ex-field component of the non-rotated TWTS field in SI units */
-    HDINLINE float_T
-    calcTWTSEy( const float3_64& pos, const float_64 time ) const;
+    ///** Calculate the Ey(r,t) field here (electric field vector in pulse-front-tilt plane)
+     //*
+     //* \param pos Spatial position of the target field
+     //* \param time Absolute time (SI, including all offsets and transformations)
+     //*  for calculating the field
+     //* \return Ex-field component of the non-rotated TWTS field in SI units */
+    //HDINLINE float_T
+    //calcTWTSEy( const float3_64& pos, const float_64 time ) const;
 
     /** Calculate the E-field vector of the TWTS laser in SI units.
      * \tparam T_dim Specializes for the simulation dimension
@@ -174,14 +174,14 @@ public:
      * \tparam T_dim Specializes for the simulation dimension
      * \param cellIdx The total cell id counted from the start at timestep 0
      * \return Efield vector of the rotated TWTS field in SI units */
-    template <unsigned T_dim>
-    HDINLINE float3_X
-    getTWTSEfield_Normalized_Ey(
-            const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
-            const float_64 time) const;
+    //template <unsigned T_dim>
+    //HDINLINE float3_X
+    //getTWTSEfield_Normalized_Ey(
+            //const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+            //const float_64 time) const;
 
 };
 
-} /* namespace twts */
+} /* namespace pwte */
 } /* namespace templates */
 } /* namespace picongpu */

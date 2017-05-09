@@ -49,7 +49,7 @@ namespace picongpu
 /* Load pre-defined background field */
 namespace templates
 {
-/* Traveling-wave Thomson scattering laser pulse */
+/* Plane-wave laser with temporally increasing amplitude */
 namespace pwte
 {
 
@@ -93,39 +93,39 @@ namespace pwte
                          float_X(0.), float_X(0.) );
     }
 
-    template<>
-    HDINLINE float3_X
-    EField::getTWTSEfield_Normalized_Ey<DIM3>(
-                const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
-                const float_64 time) const
-    {
-        typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
-        PosVecVec pos(PosVecVec::create(
-                                           float3_64::create(0.0)
-                                       ));
+    //template<>
+    //HDINLINE float3_X
+    //EField::getTWTSEfield_Normalized_Ey<DIM3>(
+                //const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+                //const float_64 time) const
+    //{
+        //typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
+        //PosVecVec pos(PosVecVec::create(
+                                           //float3_64::create(0.0)
+                                       //));
 
-        for (uint32_t k = 0; k<detail::numComponents;++k) {
-            for (uint32_t i = 0; i<simDim;++i) pos[k][i] = eFieldPositions_SI[k][i];
-        }
+        //for (uint32_t k = 0; k<detail::numComponents;++k) {
+            //for (uint32_t i = 0; i<simDim;++i) pos[k][i] = eFieldPositions_SI[k][i];
+        //}
 
-        /* Calculate Ey-component with the intra-cell offset of a Ey-field */
-        const float_64 Ey_Ey = calcTWTSEy(pos[1], time);
-        /* Calculate Ey-component with the intra-cell offset of a Ez-field */
-        const float_64 Ey_Ez = calcTWTSEy(pos[2], time);
+        ///* Calculate Ey-component with the intra-cell offset of a Ey-field */
+        //const float_64 Ey_Ey = calcTWTSEy(pos[1], time);
+        ///* Calculate Ey-component with the intra-cell offset of a Ez-field */
+        //const float_64 Ey_Ez = calcTWTSEy(pos[2], time);
 
-        /* Since we rotated all position vectors before calling calcTWTSEy,
-         * we need to back-rotate the resulting E-field vector.
-         *
-         * RotationMatrix[-(PI/2+phi)].(Ey,Ez) for rotating back the field-vectors.
-         */
-        const float_64 Ey_rot = -math::sin(+phi)*Ey_Ey;
-        const float_64 Ez_rot = -math::cos(+phi)*Ey_Ez;
+        ///* Since we rotated all position vectors before calling calcTWTSEy,
+         //* we need to back-rotate the resulting E-field vector.
+         //*
+         //* RotationMatrix[-(PI/2+phi)].(Ey,Ez) for rotating back the field-vectors.
+         //*/
+        //const float_64 Ey_rot = -math::sin(+phi)*Ey_Ey;
+        //const float_64 Ez_rot = -math::cos(+phi)*Ey_Ez;
 
-        /* Finally, the E-field normalized to the peak amplitude. */
-        return float3_X( float_X(0.0),
-                         float_X(Ey_rot),
-                         float_X(Ez_rot) );
-    }
+        ///* Finally, the E-field normalized to the peak amplitude. */
+        //return float3_X( float_X(0.0),
+                         //float_X(Ey_rot),
+                         //float_X(Ez_rot) );
+    //}
 
     template<>
     HDINLINE float3_X
@@ -141,45 +141,45 @@ namespace pwte
                          float_X( calcTWTSEx(pos,time) ) );
     }
 
-    template<>
-    HDINLINE float3_X
-    EField::getTWTSEfield_Normalized_Ey<DIM2>(
-        const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
-        const float_64 time) const
-    {
-        typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
-        PosVecVec pos(PosVecVec::create(
-                                           float3_64::create(0.0)
-                                       ));
+    //template<>
+    //HDINLINE float3_X
+    //EField::getTWTSEfield_Normalized_Ey<DIM2>(
+        //const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+        //const float_64 time) const
+    //{
+        //typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
+        //PosVecVec pos(PosVecVec::create(
+                                           //float3_64::create(0.0)
+                                       //));
 
-        /* The 2D output of getFieldPositions_SI only returns
-         * the y- and z-component of a 3D vector.
-         */
-        for (uint32_t k = 0; k<detail::numComponents;++k) {
-            for (uint32_t i = 0; i<DIM2;++i) pos[k][i+1] = eFieldPositions_SI[k][i];
-        }
+        ///* The 2D output of getFieldPositions_SI only returns
+         //* the y- and z-component of a 3D vector.
+         //*/
+        //for (uint32_t k = 0; k<detail::numComponents;++k) {
+            //for (uint32_t i = 0; i<DIM2;++i) pos[k][i+1] = eFieldPositions_SI[k][i];
+        //}
 
-        /* Ey->Ey, but grid cell offsets for Ex and Ey have to be used.
-         *
-         * Calculate Ey-component with the intra-cell offset of a Ey-field
-         */
-        const float_64 Ey_Ey = calcTWTSEy(pos[1], time);
-        /* Calculate Ey-component with the intra-cell offset of a Ex-field */
-        const float_64 Ey_Ex = calcTWTSEy(pos[0], time);
+        ///* Ey->Ey, but grid cell offsets for Ex and Ey have to be used.
+         //*
+         //* Calculate Ey-component with the intra-cell offset of a Ey-field
+         //*/
+        //const float_64 Ey_Ey = calcTWTSEy(pos[1], time);
+        ///* Calculate Ey-component with the intra-cell offset of a Ex-field */
+        //const float_64 Ey_Ex = calcTWTSEy(pos[0], time);
 
-        /* Since we rotated all position vectors before calling calcTWTSEy,
-         * we need to back-rotate the resulting E-field vector.
-         *
-         * RotationMatrix[-(PI / 2+phi)].(Ey,Ex) for rotating back the field-vectors.
-         */
-        const float_64 Ey_rot = -math::sin(+phi)*Ey_Ey;
-        const float_64 Ex_rot = -math::cos(+phi)*Ey_Ex;
+        ///* Since we rotated all position vectors before calling calcTWTSEy,
+         //* we need to back-rotate the resulting E-field vector.
+         //*
+         //* RotationMatrix[-(PI / 2+phi)].(Ey,Ex) for rotating back the field-vectors.
+         //*/
+        //const float_64 Ey_rot = -math::sin(+phi)*Ey_Ey;
+        //const float_64 Ex_rot = -math::cos(+phi)*Ey_Ex;
 
-        /* Finally, the E-field normalized to the peak amplitude. */
-        return float3_X( float_X(Ex_rot),
-                         float_X(Ey_rot),
-                         float_X(0.0) );
-    }
+        ///* Finally, the E-field normalized to the peak amplitude. */
+        //return float3_X( float_X(Ex_rot),
+                         //float_X(Ey_rot),
+                         //float_X(0.0) );
+    //}
 
     HDINLINE float3_X
     EField::operator()( const DataSpace<simDim>& cellIdx,
@@ -193,14 +193,14 @@ namespace pwte
                 fieldPosE(), unit_length, focus_y_SI, phi);
 
         /* Single TWTS-Pulse */
-        switch (pol)
-        {
-            case LINEAR_X :
-            return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI);
+        //switch (pol)
+        //{
+            //case LINEAR_X :
+            //return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI);
 
-            case LINEAR_YZ :
-            return getTWTSEfield_Normalized_Ey<simDim>(eFieldPositions_SI, time_SI);
-        }
+            //case LINEAR_YZ :
+            //return getTWTSEfield_Normalized_Ey<simDim>(eFieldPositions_SI, time_SI);
+        //}
         return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI); // defensive default
     }
 
@@ -275,138 +275,50 @@ namespace pwte
         const float_T yMod = float_T( pos.y() + numberOfPeriods * deltaY );
         const float_T zMod = float_T( pos.z() + numberOfPeriods * deltaZ );
 
-       /* Find out the envelope factor along the (long) TWTS pulse width (y-axis)
-        * according to a Tukey-window.
-        * This is only correct if the transition region size deltawy = wy * alpha / 2
-        * is very much larger than the characteristic size of diffraction in the simulation.
-        * It is useful to compare the actual TWTS propagation distance (within the simulation volume)
-        * with the corresponding "Rayleigh length" PI * deltawy * deltawy / lambda0.
-        */
-        float_T envelopeWy;
-        const float_T alpha = float_T(0.05);
-        //const float_T currentEnvelopePos = float_T(time / UNIT_TIME * cspeed); //Physical correct scenario
-        const float_T currentEnvelopePos = float_T(time / UNIT_TIME * cspeed); //Artificially eliminate ponderomotive force from longitudinal envelope
-        if ( ( -wy / float_T(2.0) <= currentEnvelopePos ) && ( currentEnvelopePos < ( alpha - float_T(1.0) ) * wy / float_T(2.0) ) )
-        {
-            envelopeWy = float_T(0.5) * ( float_T(1.0) + math::cos( PI * ( ( float_T(2.0) * currentEnvelopePos + wy ) / ( alpha * wy ) - float_T(1.0) ) ) );
-        }
-        else if ( ( ( alpha - float_T(1.0) ) * wy / float_T(2.0) <= currentEnvelopePos ) &&  ( currentEnvelopePos <= ( float_T(1.0) - alpha ) * wy / float_T(2.0) ) )
-        {
-            envelopeWy = float_T(1.0);
-        }
-        else if ( ( ( float_T(1.0) - alpha ) * wy / float_T(2.0) < currentEnvelopePos ) && ( currentEnvelopePos <= wy / float_T(2.0) ) )
-        {
-            envelopeWy = float_T(0.5) * ( float_T(1.0) + math::cos( PI * ( ( float_T(2.0) * currentEnvelopePos + wy ) / ( alpha * wy ) - float_T(2.0) / alpha + float_T(1.0) ) ) );
-        }
-        else
-        {
-            envelopeWy = float_T(0.0);
-        }
-
         const float_T x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
         const float_T y = float_T(phiPositive * yMod / UNIT_LENGTH);
         const float_T z = float_T(zMod / UNIT_LENGTH);
         const float_T t = float_T(timeMod / UNIT_TIME);
 
-	/* This makes the pulse super-gaussian (to the power of 8) and removes the previous purely gaussian dependency.
-	 * This is a hack), which can only work close to the center of the Rayleigh length rho0, because it does not include eventual phase-evolution,
-	 * due to super-gaussian focusing instead of gaussian focusing.
-	 */
-        const float_T s = y * math::cos(phiT) + z * math::sin(phiT); // Formally, this probably includes a sign-error, but this is OK, because s is later used only as s*s.
-        const float_T wx2_s = w0 * w0 * ( float_T(1.0) + s*s / ( rho0 * rho0 ) );
-        const float_T envelopeWx = math::exp( +(x*x/wx2_s) - math::pow( (x*x/wx2_s) , 4 ) );
+        // Choosen such that the smooth step like envelope reaches its 
+        // maximum at approximately t=0 similar to the behaviour of a 
+        // (standard) gaussian envelope.
+        // This exact value is defined by requesting the gauss and the 
+        // step envelope to reach a value of 0.5 at the same time. 
+        const float_T temp_offset = - math::sqrt(math::log(float_T(2.0)))/tauG;
 
-        /* Calculating shortcuts for speeding up field calculation */
-        const float_T sinPhi = math::sin(phiT);
-        const float_T cosPhi = math::cos(phiT);
-        const float_T cscPhi = float_T(1.0)/math::sin(phiT);
-        const float_T sinPhi2 = math::sin(phiT / float_T(2.0));
-        const float_T sin2Phi = math::sin(phiT * float_T(2.0));
-        const float_T tanPhi2 = math::tan(phiT / float_T(2.0));
+        // Slope of the temporal envelope
+        // The value is choosen at whim with the aim to resemble the 
+        // slope of a gaussian envelope
+        const float_T temp_slope = float_T(1./(.6*tauG));
+        
+        // Smooth step-like temporal envelope by an error function.
+        // Reaches the value 0.5 at the same time a gaussian envelope of
+        // the form exp(-t**2/tauG**2) reaches 0.5. 
+        const float_T temp_envelope = float_T(.5)
+            *(float_T(1.0) + math::erf(temp_slope*(t - temp_offset)));
 
-        const float_T sinPhi_2 = sinPhi * sinPhi;
-        const float_T sinPhi_3 = sinPhi * sinPhi_2;
-        const float_T sinPhi_4 = sinPhi_2 * sinPhi_2;
+        // Phase of the plane wave electric field travelling along +z
+        const float_T phase = k*(cspeed*t - z);
 
-        const float_T sinPhi2_2 = sinPhi2 * sinPhi2;
-        const float_T sinPhi2_4 = sinPhi2_2 * sinPhi2_2;
-        const float_T tanPhi2_2 = tanPhi2 * tanPhi2;
-
-        const float_T tauG2 = tauG * tauG;
-        const float_T x2 = x * x;
-        const float_T y2 = y * y;
-        const float_T z2 = z * z;
-
-        /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
-         * thus help with formal code verification through manual code inspection.
-         */
-        const complex_T helpVar1 = cspeed * om0 * tauG2 * sinPhi_4
-            - complex_T(0,8) * sinPhi2_4 * sinPhi * (y*cosPhi + z*sinPhi);
-
-        const complex_T helpVar2 = complex_T(0,1) * rho0 - y * cosPhi - z * sinPhi;
-
-        const complex_T helpVar3 = complex_T(0,float_T(-0.5)) * cscPhi * (
-                  complex_T(0,-8) * om0 * y * ( cspeed * t - z) * sinPhi2_2 * sinPhi_4
-                        * ( complex_T(0,1) * rho0 - z * sinPhi)
-                - om0 * sinPhi_4 * sinPhi * (
-                    - float_T(2.0) * z2 * rho0 - cspeed * cspeed * ( k * tauG2 * x2 + float_T(2.0) * t
-                        * (t - complex_T(0,1) * om0 * tauG2) * rho0)
-                    + cspeed * ( float_T(4.0) * t * z * rho0 - complex_T(0,2) * om0 * tauG2 * z * rho0 )
-                    - complex_T(0,2) * ( cspeed * t - z ) * (
-                          cspeed * ( t - complex_T(0,1) * om0 * tauG2) - z
-                        ) * z * sinPhi
-                    )
-                + float_T(2.0) * y * cosPhi * sinPhi_2 * (
-                      complex_T(0,4) * om0 * y * ( cspeed * t - z ) * sinPhi2_2 * sinPhi_2
-                    + om0 * ( cspeed * t - z ) * (
-                          complex_T(0,1) * cspeed * t
-                        + cspeed * om0 * tauG2
-                        - complex_T(0,1) * z
-                        ) * sinPhi_3
-                    - complex_T(0,4) * sinPhi2_4 * (
-                        cspeed * k * x2 - om0*(y2 - float_T(4.0) * ( cspeed * t - z ) * z ) * sinPhi
-                        )
-                    )
-                - complex_T(0,4) * sinPhi2_4 * (
-                      complex_T(0,-4) * om0 * y * ( cspeed * t - z) * rho0 * cosPhi * sinPhi_2
-                    + complex_T(0,2) * (
-                          om0 * ( y2 + float_T(2.0) * z2 ) * rho0
-                        - cspeed * z * (
-                              complex_T(0,1) * k * x2
-                            + float_T(2.0) * om0 * t * rho0
-                            )
-                        ) * sinPhi_3
-                    - float_T(2.0) * om0 * z * ( y2 - float_T(2.0) * ( cspeed * t - z ) * z ) * sinPhi_4
-                    + om0 * y2 * ( cspeed * t - z ) * sin2Phi * sin2Phi
-                    )
-            ) / ( cspeed * helpVar2 * helpVar1 );
-
-        const complex_T helpVar4 = cspeed * om0 * tauG2
-            - complex_T(0,8) * y * math::tan( float_T(PI / 2.0) - phiT) * cscPhi * cscPhi * sinPhi2_4
-            - complex_T(0,2) * z * tanPhi2_2;
-
-        const complex_T result = ( math::exp(helpVar3) * tauG
-        * math::sqrt( cspeed * om0 * rho0 / helpVar2 )
-        ) / math::sqrt(helpVar4);
-
-        return envelopeWx * envelopeWy * result.get_real();
+        return temp_envelope*sin(phase);
     }
 
-    /** Calculate the Ey(r,t) field here
-     *
-     * \param pos Spatial position of the target field.
-     * \param time Absolute time (SI, including all offsets and transformations) for calculating
-     *             the field */
-    HDINLINE EField::float_T
-    EField::calcTWTSEy( const float3_64& pos, const float_64 time) const
-    {
-        /* The field function of Ey (polarization in pulse-front-tilt plane)
-         * is by definition identical to Ex (polarization normal to pulse-front-tilt plane)
-         */
-        return calcTWTSEx( pos, time );
-    }
+    ///** Calculate the Ey(r,t) field here
+     //*
+     //* \param pos Spatial position of the target field.
+     //* \param time Absolute time (SI, including all offsets and transformations) for calculating
+     //*             the field */
+    //HDINLINE EField::float_T
+    //EField::calcTWTSEy( const float3_64& pos, const float_64 time) const
+    //{
+        ///* The field function of Ey (polarization in pulse-front-tilt plane)
+         //* is by definition identical to Ex (polarization normal to pulse-front-tilt plane)
+         //*/
+        //return calcTWTSEx( pos, time );
+    //}
 
-} /* namespace twts */
+} /* namespace pwte */
 } /* namespace templates */
 } /* namespace picongpu */
 

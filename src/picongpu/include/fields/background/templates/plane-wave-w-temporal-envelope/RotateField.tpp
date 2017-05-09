@@ -127,6 +127,6 @@ namespace detail
     }
 
 } /* namespace detail */
-} /* namespace twts */
+} /* namespace pwte */
 } /* namespace templates */
 } /* namespace picongpu */

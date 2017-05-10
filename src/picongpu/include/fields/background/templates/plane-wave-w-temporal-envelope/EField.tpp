@@ -280,23 +280,39 @@ namespace pwte
         const float_T z = float_T(zMod / UNIT_LENGTH);
         const float_T t = float_T(timeMod / UNIT_TIME);
 
+        /*
+         * Implementation of the plane wave formula for the electric field.
+         * If you change this, you have to change the implementation for
+         * the magnetic field as well!
+         */ 
+
         // Choosen such that the smooth step like envelope reaches its 
         // maximum at approximately t=0 similar to the behaviour of a 
         // (standard) gaussian envelope.
         // This exact value is defined by requesting the gauss and the 
         // step envelope to reach a value of 0.5 at the same time. 
-        const float_T temp_offset = - math::sqrt(math::log(float_T(2.0)))/tauG;
+        const float_T temp_offset = - math::sqrt(math::log(float_T(2.0)))*tauG;
 
         // Slope of the temporal envelope
         // The value is choosen at whim with the aim to resemble the 
         // slope of a gaussian envelope
-        const float_T temp_slope = float_T(1./(.6*tauG));
+        //const float_T temp_slope = float_T(1./(.7*tauG)); // use for erf-startup
+        const float_T temp_slope = float_T(2./(.5*tauG)); // use for tanh-startup
         
-        // Smooth step-like temporal envelope by an error function.
-        // Reaches the value 0.5 at the same time a gaussian envelope of
+        // Determine from the current simulation time the proper phase 
+        // of the envelopes temporal evolution
+        const float_T envelope_phase = 
+            temp_slope*(float_T(time/UNIT_TIME) - temp_offset);
+        
+        // Smooth step-like temporal envelope by an error function or
+        // a tangens hyperbolicus.
+        // Both reache the value 0.5 at the same time a gaussian envelope of
         // the form exp(-t**2/tauG**2) reaches 0.5. 
-        const float_T temp_envelope = float_T(.5)
-            *(float_T(1.0) + math::erf(temp_slope*(t - temp_offset)));
+        //const float_T temp_envelope = float_T(0.5)
+        //    *(float_T(1.0) + math::erf(temp_slope*(t - temp_offset))); // erf-startup
+        //const float_T temp_envelope = float_T(1.0)
+        //    /(float_T(1.0) + math::exp(-envelope_phase)); // tanh-startup
+        const float_T temp_envelope = float_T(1.0);
 
         // Phase of the plane wave electric field travelling along +z
         const float_T phase = k*(cspeed*t - z);

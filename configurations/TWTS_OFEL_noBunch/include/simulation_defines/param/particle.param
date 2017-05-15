@@ -51,7 +51,7 @@ namespace particles
      * Determines the weighting of a macro particle and with it, the number of
      * particles "sampling" dynamics in phase space.
      */
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 1;
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 2;
 
 namespace manipulators
 {
@@ -96,7 +96,7 @@ namespace manipulators
         DINLINE void operator()( T_Rng& rng, T_Particle& particle )
         {
             // enable radiation for 10% of the particles
-            particle[ multiMask_ ] = rng() < ( 0.07 );
+            particle[ multiMask_ ] = rng() <  0.5 ;
         }
     };
 

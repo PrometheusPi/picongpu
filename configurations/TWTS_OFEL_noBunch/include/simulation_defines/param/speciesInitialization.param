@@ -87,7 +87,7 @@ namespace particles
     using InitPipeline = mpl::vector<
         CreateDensity<
             densityProfiles::FreeFormula,
-            startPosition::Random,
+            startPosition::Quiet,
             PIC_Electrons
         >,
         Manipulate<
@@ -97,10 +97,6 @@ namespace particles
         FillAllGaps< PIC_Electrons >,
         Manipulate<
             manipulators::AssignYDrift,
-            PIC_Electrons
-        >,
-        Manipulate<
-            manipulators::AddTemperature,
             PIC_Electrons
         >
     >;

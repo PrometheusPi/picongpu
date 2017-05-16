@@ -90,10 +90,6 @@ namespace particles
             startPosition::Quiet,
             PIC_Electrons
         >,
-        Manipulate<
-            manipulators::RandomDeleteParticle,
-            PIC_Electrons
-        >,
         FillAllGaps< PIC_Electrons >,
         Manipulate<
             manipulators::AssignYDrift,

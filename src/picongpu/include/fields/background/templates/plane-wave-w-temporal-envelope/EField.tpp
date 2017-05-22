@@ -64,11 +64,9 @@ namespace pwte
                     const float_64 tdelay_user_SI,
                     const bool auto_tdelay,
                     const PolarizationType pol ) :
-        focus_y_SI(focus_y_SI), wavelength_SI(wavelength_SI),
-        pulselength_SI(pulselength_SI), w_x_SI(w_x_SI),
-        w_y_SI(w_y_SI), phi(phi), beta_0(beta_0),
-        tdelay_user_SI(tdelay_user_SI), dt(SI::DELTA_T_SI),
-        unit_length(UNIT_LENGTH), auto_tdelay(auto_tdelay), pol(pol), phiPositive( float_X(1.0) )
+        wavelength_SI(wavelength_SI), pulselength_SI(pulselength_SI), 
+        phi(phi), beta_0(beta_0), tdelay_user_SI(tdelay_user_SI),
+        auto_tdelay(auto_tdelay), pol(pol), phiPositive( float_X(1.0) )
     {
         /* Note: Enviroment-objects cannot be instantiated on CUDA GPU device. Since this is done
                  on host (see fieldBackground.param), this is no problem.
@@ -185,12 +183,17 @@ namespace pwte
     EField::operator()( const DataSpace<simDim>& cellIdx,
                             const uint32_t currentStep ) const
     {
-        const float_64 time_SI = float_64(currentStep) * dt - tdelay;
+        const float_64 time_SI = float_64(currentStep) * UNIT_TIME - tdelay;
         const fieldSolver::numericalCellType::traits::FieldPosition<FieldE> fieldPosE;
+
+        // Vector r is 3-dim of float_64 numbers
+        //const PMacc::math::Vector<floatD_64,detail::numComponents> eFieldPositions_SI =
+        //      detail::getFieldPositions_SI(cellIdx, halfSimSize,
+        //        fieldPosE(), UNIT_LENGTH, focus_y_SI, phi);
 
         const PMacc::math::Vector<floatD_64,detail::numComponents> eFieldPositions_SI =
               detail::getFieldPositions_SI(cellIdx, halfSimSize,
-                fieldPosE(), unit_length, focus_y_SI, phi);
+                fieldPosE(), UNIT_LENGTH, 0.0, phi);
 
         /* Single TWTS-Pulse */
         //switch (pol)
@@ -212,22 +215,16 @@ namespace pwte
     HDINLINE EField::float_T
     EField::calcTWTSEx( const float3_64& pos, const float_64 time) const
     {
-        typedef PMacc::math::Complex<float_T> complex_T;
-        typedef PMacc::math::Complex<float_64> complex_64;
-        /** Unit of Speed */
-        const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
-        /** Unit of time */
-        const double UNIT_TIME = SI::DELTA_T_SI;
-        /** Unit of length */
-        const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+        //typedef PMacc::math::Complex<float_T> complex_T;
+        //typedef PMacc::math::Complex<float_64> complex_64;
     
         /* If phi < 0 the formulas below are not directly applicable.
          * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
          * z-axis of the coordinate system in this function.
          */
-        const float_T phiReal = float_T( math::abs(phi) );
-        const float_T alphaTilt = math::atan2(float_T(1.0)-float_T(beta_0)*math::cos(phiReal),
-                                                float_T(beta_0)*math::sin(phiReal));
+        //const float_T phiReal = float_T( math::abs(phi) );
+        //const float_T alphaTilt = math::atan2(float_T(1.0)-float_T(beta_0)*math::cos(phiReal),
+        //                                        float_T(beta_0)*math::sin(phiReal));
         /* Definition of the laser pulse front tilt angle for the laser field below.
          *
          * For beta0 = 1.0, this is equivalent to our standard definition. Question: Why is the
@@ -238,24 +235,24 @@ namespace pwte
          * pulse for beta0 != 1.0. This only shows that this TWTS pulse is primarily designed for
          * scenarios close to beta0 = 1.
          */
-        const float_T phiT = float_T(2.0)*alphaTilt;
+        //const float_T phiT = float_T(2.0)*alphaTilt;
 
         /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
          * documentation purposes.
          * const float_T eta = (PI / 2) - (phiReal - alphaTilt);
          */
 
-        const float_T cspeed = float_T( SI::SPEED_OF_LIGHT_SI / UNIT_SPEED );
-        const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
-        const float_T om0 = float_T(2.0*PI*cspeed / lambda0);
+        //const float_T cspeed = float_T( SI::SPEED_OF_LIGHT_SI / UNIT_SPEED );
+        //const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
+        //const float_T om0 = float_T(2.0*PI*cspeed / lambda0);
         /* factor 2  in tauG arises from definition convention in laser formula */
         const float_T tauG = float_T(pulselength_SI*2.0 / UNIT_TIME);
         /* w0 is wx here --> w0 could be replaced by wx */
-        const float_T w0 = float_T(w_x_SI / UNIT_LENGTH);
-        const float_T rho0 = float_T(PI*w0*w0/lambda0);
+        //const float_T w0 = float_T(w_x_SI / UNIT_LENGTH);
+        //const float_T rho0 = float_T(PI*w0*w0/lambda0);
         /* wy is width of TWTS pulse */
-        const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
-        const float_T k = float_T(2.0*PI / lambda0);
+        //const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
+        //const float_T k = float_T(2.0*PI / lambda0);
 
         /* In order to calculate in single-precision and in order to account for errors in
          * the approximations far from the coordinate origin, we use the wavelength-periodicity and
@@ -263,22 +260,30 @@ namespace pwte
          * (i.e. from a finite coordinate range) only. All these quantities have to be calculated
          * in double precision.
          */
-        const float_64 tanAlpha = ( float_64(1.0) - beta_0 * math::cos(phi) )
-                                    / ( beta_0 * math::sin(phi) );
-        const float_64 tanFocalLine = math::tan( PI / float_64(2.0) - phi );
-        const float_64 deltaT = wavelength_SI / SI::SPEED_OF_LIGHT_SI
-                                 * ( float_64(1.0) + tanAlpha / tanFocalLine);
-        const float_64 deltaY = wavelength_SI / tanFocalLine;
-        const float_64 deltaZ = -wavelength_SI;
-        const float_64 numberOfPeriods = math::floor( time / deltaT );
-        const float_T timeMod = float_T( time - numberOfPeriods * deltaT );
-        const float_T yMod = float_T( pos.y() + numberOfPeriods * deltaY );
-        const float_T zMod = float_T( pos.z() + numberOfPeriods * deltaZ );
+        // Tangens of pulse-front tilt angle
+        //const float_64 tanAlpha = ( float_64(1.0) - beta_0 * math::cos(phi) )
+        //                            / ( beta_0 * math::sin(phi) );
+        // Tangens of angle between laser phase-front and electron direction of propagation
+        // = angle enclosed by the laser focal plane and the phase front
+        //const float_64 tanFocalLine = math::tan( PI / float_64(2.0) - phi );
+        // 
+        //const float_64 deltaT = wavelength_SI / SI::SPEED_OF_LIGHT_SI
+        //                         * ( float_64(1.0) + tanAlpha / tanFocalLine);
+        //const float_64 deltaY = wavelength_SI / tanFocalLine;
+        //const float_64 deltaZ = -wavelength_SI;
+        //const float_64 numberOfPeriods = math::floor( time / deltaT );
+        //const float_T timeMod = float_T( time - numberOfPeriods * deltaT );
+        //const float_T yMod = float_T( pos.y() + numberOfPeriods * deltaY );
+        //const float_T zMod = float_T( pos.z() + numberOfPeriods * deltaZ );
 
-        const float_T x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
-        const float_T y = float_T(phiPositive * yMod / UNIT_LENGTH);
-        const float_T z = float_T(zMod / UNIT_LENGTH);
-        const float_T t = float_T(timeMod / UNIT_TIME);
+        // phiPositive is -1.0 or 1.0, depending on the sign of phi
+        //const float_T x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
+        //const float_T y = float_T(phiPositive * yMod / UNIT_LENGTH);
+        //const float_T z = float_T(
+        //    math::fmod(pos.z(), wavelength_SI) / UNIT_LENGTH);
+        //const float_T t = float_T(
+        //    math::fmod(time, wavelength_SI / SI::SPEED_OF_LIGHT_SI) 
+        //    / UNIT_TIME);
 
         /*
          * Implementation of the plane wave formula for the electric field.
@@ -315,7 +320,8 @@ namespace pwte
         const float_T temp_envelope = float_T(1.0);
 
         // Phase of the plane wave electric field travelling along +z
-        const float_T phase = k*(cspeed*t - z);
+        const float_T phase = 
+            float_T((2.*PI)*((SI::SPEED_OF_LIGHT_SI*time - pos.z())/wavelength_SI));
 
         return temp_envelope*sin(phase);
     }

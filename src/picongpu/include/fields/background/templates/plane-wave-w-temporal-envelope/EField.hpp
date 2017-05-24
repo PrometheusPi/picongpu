@@ -53,7 +53,7 @@ public:
     enum PolarizationType
     {
         /* The linear polarization of the TWTS laser is defined
-         * relative to the plane of the pulse front tilt.
+         * relative to the plane of the pulse front tilt (reference plane).
          *
          * Polarisation is normal to the reference plane.
          * Use Ex-fields (and corresponding B-fields) in TWTS laser internal coordinate system.
@@ -67,18 +67,10 @@ public:
 
     /* Center of simulation volume in number of cells */
     PMACC_ALIGN(halfSimSize,DataSpace<simDim>);
-    /* y-position of TWTS coordinate origin inside the simulation coordinates [meter]
-       The other origin coordinates (x and z) default to globally centered values
-       with respect to the simulation volume. */
-    //const PMACC_ALIGN(focus_y_SI,float_64);
     /* Laser wavelength [meter] */
     const PMACC_ALIGN(wavelength_SI,float_64);
     /* TWTS laser pulse duration [second] */
     const PMACC_ALIGN(pulselength_SI,float_64);
-    /* line focus height of TWTS pulse [meter] */
-    //const PMACC_ALIGN(w_x_SI,float_64);
-    /* line focus width of TWTS pulse [meter] */
-    //const PMACC_ALIGN(w_y_SI,float_64);
     /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
     const PMACC_ALIGN(phi,float_X);
     /* Takes value 1.0 for phi > 0 and -1.0 for phi < 0. */
@@ -94,8 +86,6 @@ public:
      * the laser gradually enters the simulation volume? [Default: TRUE]
      */
     const PMACC_ALIGN(auto_tdelay,bool);
-    /* Polarization of TWTS laser */
-    const PMACC_ALIGN(pol,PolarizationType);
 
     /** Electric field of the TWTS laser
      *
@@ -147,14 +137,7 @@ public:
     HDINLINE float_T
     calcTWTSEx( const float3_64& pos, const float_64 time ) const;
 
-    ///** Calculate the Ey(r,t) field here (electric field vector in pulse-front-tilt plane)
-     //*
-     //* \param pos Spatial position of the target field
-     //* \param time Absolute time (SI, including all offsets and transformations)
-     //*  for calculating the field
-     //* \return Ex-field component of the non-rotated TWTS field in SI units */
-    //HDINLINE float_T
-    //calcTWTSEy( const float3_64& pos, const float_64 time ) const;
+
 
     /** Calculate the E-field vector of the TWTS laser in SI units.
      * \tparam T_dim Specializes for the simulation dimension
@@ -165,17 +148,6 @@ public:
     getTWTSEfield_Normalized(
             const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
             const float_64 time) const;
-
-    /** Calculate the E-field vector of the "in-plane polarized" TWTS laser in SI units.
-     * \tparam T_dim Specializes for the simulation dimension
-     * \param cellIdx The total cell id counted from the start at timestep 0
-     * \return Efield vector of the rotated TWTS field in SI units */
-    //template <unsigned T_dim>
-    //HDINLINE float3_X
-    //getTWTSEfield_Normalized_Ey(
-            //const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
-            //const float_64 time) const;
-
 };
 
 } /* namespace pwte */

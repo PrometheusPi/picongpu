@@ -176,9 +176,8 @@ namespace pwte
         // the form exp(-t**2/tauG**2) reaches 0.5. 
         //const float_T temp_envelope = float_T(0.5)
         //    *(float_T(1.0) + math::erf(temp_slope*(t - temp_offset))); // erf-startup
-        //const float_T temp_envelope = float_T(1.0)
-        //    /(float_T(1.0) + math::exp(-envelope_phase)); // tanh-startup
-        const float_T temp_envelope = float_T(1.0);
+        const float_T temp_envelope = float_T(1.0)
+            /(float_T(1.0) + math::exp(-envelope_phase)); // tanh-startup
 
         // Phase of the plane wave electric field travelling along +z
         const float_T phase = 

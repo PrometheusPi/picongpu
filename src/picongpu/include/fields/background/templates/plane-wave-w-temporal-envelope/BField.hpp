@@ -91,13 +91,21 @@ public:
 
     /** Magnetic field of the TWTS laser
      *
-     * \param focus_y_SI the distance to the laser focus in y-direction [m]
+     * A couple of the constructor parameters are not used for the plane 
+     * wave field but remain in the code in order to provide the same 
+     * interface as the TWTS background field.
+     * **This may be refactored in the future**
+     * 
+     * Not used parameters have the name addition "_OoU" (Out of Use).
+     * You can assign any number to these variables, such as 0.0.
+     * 
+     * \param focus_y_SI_OoU the distance to the laser focus in y-direction [m]
      * \param wavelength_SI central wavelength [m]
      * \param pulselength_SI sigma of std. gauss for intensity (E^2),
      *  pulselength_SI = FWHM_of_Intensity / 2.35482 [seconds (sigma)]
-     * \param w_x beam waist: distance from the axis where the pulse electric field
+     * \param w_x_OoU beam waist: distance from the axis where the pulse electric field
      *  decreases to its 1/e^2-th part at the focus position of the laser [m]
-     * \param w_y \see w_x
+     * \param w_y_OoU \see w_x_OoU
      * \param phi interaction angle between TWTS laser propagation vector and
      *  the y-axis [rad, default = 90.*(PI/180.)]
      * \param beta_0 propagation speed of overlap normalized to
@@ -105,20 +113,20 @@ public:
      * \param tdelay_user manual time delay if auto_tdelay is false
      * \param auto_tdelay calculate the time delay such that the TWTS pulse is not
      *  inside the simulation volume at simulation start timestep = 0 [default = true]
-     * \param pol determines the TWTS laser polarization, which is either normal or parallel
+     * \param pol_OoU determines the TWTS laser polarization, which is either normal or parallel
      *  to the laser pulse front tilt plane [ default= LINEAR_X , LINEAR_YZ ]
      */
     HINLINE
-    BField( const float_64 focus_y_SI,
+    BField( const float_64 focus_y_SI_OoU,
             const float_64 wavelength_SI,
             const float_64 pulselength_SI,
-            const float_64 w_x_SI,
-            const float_64 w_y_SI,
+            const float_64 w_x_SI_OoU,
+            const float_64 w_y_SI_OoU,
             const float_X phi               = 90.*(PI / 180.),
             const float_X beta_0            = 1.0,
             const float_64 tdelay_user_SI   = 0.0,
             const bool auto_tdelay          = true,
-            const PolarizationType pol      = LINEAR_X );
+            const PolarizationType pol_OoU = LINEAR_X );
 
 
 

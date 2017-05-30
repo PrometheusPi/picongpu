@@ -54,16 +54,16 @@ namespace pwte
 {
 
     HINLINE
-    EField::EField( const float_64 focus_y_SI,
+    EField::EField( const float_64 focus_y_SI_OoU,
                     const float_64 wavelength_SI,
                     const float_64 pulselength_SI,
-                    const float_64 w_x_SI,
-                    const float_64 w_y_SI,
+                    const float_64 w_x_SI_OoU,
+                    const float_64 w_y_SI_OoU,
                     const float_X phi,
                     const float_X beta_0,
                     const float_64 tdelay_user_SI,
                     const bool auto_tdelay,
-                    const PolarizationType pol ) :
+                    const PolarizationType pol_OoU ) :
         wavelength_SI(wavelength_SI), pulselength_SI(pulselength_SI), 
         phi(phi), beta_0(beta_0), tdelay_user_SI(tdelay_user_SI),
         auto_tdelay(auto_tdelay), phiPositive( float_X(1.0) )

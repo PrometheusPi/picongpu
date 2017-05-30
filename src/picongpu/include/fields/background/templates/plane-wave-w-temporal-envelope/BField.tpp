@@ -75,7 +75,7 @@ namespace pwte
         halfSimSize = subGrid.getGlobalDomain().size / 2;
         tdelay = detail::getInitialTimeDelay_SI(auto_tdelay, tdelay_user_SI,
                                                 halfSimSize, pulselength_SI,
-                                                focus_y_SI, phi, beta_0);
+                                                focus_y_SI_OoU, phi, beta_0);
         if ( phi < float_X(0.0) ) phiPositive = float_X(-1.0);
     }
 

@@ -70,7 +70,7 @@ public:
     /* Laser wavelength [meter] */
     const PMACC_ALIGN(wavelength_SI,float_64);
     /* TWTS laser pulse duration [second] */
-    const PMACC_ALIGN(pulselength_SI,float_64);
+    const PMACC_ALIGN(pulseduration_SI,float_64);
     /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
     const PMACC_ALIGN(phi,float_X);
     /* Takes value 1.0 for phi > 0 and -1.0 for phi < 0. */
@@ -101,8 +101,8 @@ public:
      * 
      * \param focus_y_SI_OoU the distance to the laser focus in y-direction [m]
      * \param wavelength_SI central wavelength [m]
-     * \param pulselength_SI sigma of std. gauss for intensity (E^2),
-     *  pulselength_SI = FWHM_of_Intensity / 2.35482 [seconds (sigma)]
+     * \param pulseduration_SI sigma of std. gauss for intensity (E^2),
+     *  pulseduration_SI = FWHM_of_Intensity / 2.35482 [seconds (sigma)]
      * \param w_x_OoU beam waist: distance from the axis where the pulse electric field
      *  decreases to its 1/e^2-th part at the focus position of the laser [m]
      * \param w_y_OoU \see w_x_OoU
@@ -119,7 +119,7 @@ public:
     HINLINE
     BField( const float_64 focus_y_SI_OoU,
             const float_64 wavelength_SI,
-            const float_64 pulselength_SI,
+            const float_64 pulseduration_SI,
             const float_64 w_x_SI_OoU,
             const float_64 w_y_SI_OoU,
             const float_X phi               = 90.*(PI / 180.),

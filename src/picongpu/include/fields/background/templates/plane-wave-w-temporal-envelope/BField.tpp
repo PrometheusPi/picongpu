@@ -56,7 +56,7 @@ namespace pwte
     HINLINE
     BField::BField( const float_64 focus_y_SI_OoU,
                     const float_64 wavelength_SI,
-                    const float_64 pulselength_SI,
+                    const float_64 pulseduration_SI,
                     const float_64 w_x_SI_OoU,
                     const float_64 w_y_SI_OoU,
                     const float_X phi,
@@ -64,7 +64,7 @@ namespace pwte
                     const float_64 tdelay_user_SI,
                     const bool auto_tdelay,
                     const PolarizationType pol_OoU ) :
-        wavelength_SI(wavelength_SI), pulselength_SI(pulselength_SI), 
+        wavelength_SI(wavelength_SI), pulseduration_SI(pulseduration_SI), 
         phi(phi), beta_0(beta_0), tdelay_user_SI(tdelay_user_SI), 
         auto_tdelay(auto_tdelay), phiPositive( float_X(1.0) )
     {
@@ -74,7 +74,7 @@ namespace pwte
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         halfSimSize = subGrid.getGlobalDomain().size / 2;
         tdelay = detail::getInitialTimeDelay_SI(auto_tdelay, tdelay_user_SI,
-                                                halfSimSize, pulselength_SI,
+                                                halfSimSize, pulseduration_SI,
                                                 focus_y_SI_OoU, phi, beta_0);
         if ( phi < float_X(0.0) ) phiPositive = float_X(-1.0);
     }
@@ -219,7 +219,7 @@ namespace pwte
         /* Normalize width of temporal envelope.
          * factor 2  in tauG arises from definition convention in laser formula 
          * */
-        const float_T tauG = float_T(pulselength_SI*2.0 / UNIT_TIME);
+        const float_T tauG = float_T(pulseduration_SI*2.0 / UNIT_TIME);
 
         /*
          * Implementation of the plane wave formula for the magnetic field.

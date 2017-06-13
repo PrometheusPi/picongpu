@@ -52,15 +52,14 @@ public:
 
     enum PolarizationType
     {
-        /* The linear polarization of the TWTS laser is defined
-         * relative to the plane of the pulse front tilt (reference plane).
+        /* The linear polarization of the plane wave laser is defined
+         * relative to the plane spanned by electron and laser 
+         * propagation directions (reference plane).
          *
-         * Polarisation is normal to the reference plane.
-         * Use Ex-fields (and corresponding B-fields) in TWTS laser internal coordinate system.
+         * Polarisation in Ex is normal to the reference plane.
          */
         LINEAR_X = 1u,
-        /* Polarization lies within the reference plane.
-         * Use Ey-fields (and corresponding B-fields) in TWTS laser internal coordinate system.
+        /* Polarization in Ey and/or Ez lies within the reference plane.
          */
         LINEAR_YZ = 2u,
     };
@@ -69,27 +68,32 @@ public:
     PMACC_ALIGN(halfSimSize,DataSpace<simDim>);
     /* Laser wavelength [meter] */
     const PMACC_ALIGN(wavelength_SI,float_64);
-    /* TWTS laser pulse duration [second] */
+    /* Duration of a gaussian laser pulse with approximately 
+     * equal temporal slope.
+     * Used to define the slope the of the temporal envelope.
+     * [second] */
     const PMACC_ALIGN(pulseduration_SI,float_64);
-    /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
+    /* interaction angle enclosed by plane wave laser propagation 
+     * vector and the y-axis (electron propagation direction)
+     * [rad] */
     const PMACC_ALIGN(phi,float_X);
     /* Takes value 1.0 for phi > 0 and -1.0 for phi < 0. */
     PMACC_ALIGN(phiPositive,float_X);
-    /* propagation speed of TWTS laser overlap
-       normalized to the speed of light. [Default: beta0 = 1.0] */
-    const PMACC_ALIGN(beta_0,float_X);
     /* If auto_tdelay=FALSE, then a user defined delay is used. [second] */
     const PMACC_ALIGN(tdelay_user_SI,float_64);
-    /* TWTS laser time delay */
+    /* Temporal envelope time delay.
+     * Without time delay the laser amplitude is already at half of its 
+     * maximum value at simulation start.*/
     PMACC_ALIGN(tdelay,float_64);
-    /* Should the TWTS laser time delay be chosen automatically, such that
-     * the laser gradually enters the simulation volume? [Default: TRUE]
+    /* Should the plane wave laser time delay be chosen automatically, 
+     * such that the laser amplitude starts at zero at the beginning 
+     * of the simulation and then gradually increases? [Default: TRUE]
      */
     const PMACC_ALIGN(auto_tdelay,bool);
 
 
 
-    /** Magnetic field of the TWTS laser
+    /** Magnetic field of the plane wave laser
      *
      * A couple of the constructor parameters are not used for the plane 
      * wave field but remain in the code in order to provide the same 
@@ -101,20 +105,34 @@ public:
      * 
      * \param focus_y_SI_OoU the distance to the laser focus in y-direction [m]
      * \param wavelength_SI central wavelength [m]
-     * \param pulseduration_SI sigma of std. gauss for intensity (E^2),
-     *  pulseduration_SI = FWHM_of_Intensity / 2.35482 [seconds (sigma)]
+     * \param pulseduration_SI Defines the the temporal slope of the 
+     *  temporal envelope.
+     *  The temporal envelope is modelled by a tanh function, i.e.
+     *    1 / (1 + exp[ -4*(t - t0)/tauG ]),
+     *  where the slope 4/tauG is choosen to resemble the slope of 
+     *  the field of a gaussian pulse of the form exp[-(t/tauG)^2].
+     *  pulseduration_SI is the sigma of the intensity (E^2) of this gaussian 
+     *  field,
+     *  pulseduration_SI = FWHM_of_Intensity / 2.35482 [seconds (sigma)].
+     *  With this,
+     *    tauG = FWHM_of_Intensity / sqrt[2 * ln(2)].
      * \param w_x_OoU beam waist: distance from the axis where the pulse electric field
      *  decreases to its 1/e^2-th part at the focus position of the laser [m]
      * \param w_y_OoU \see w_x_OoU
-     * \param phi interaction angle between TWTS laser propagation vector and
-     *  the y-axis [rad, default = 90.*(PI/180.)]
-     * \param beta_0 propagation speed of overlap normalized to
-     *  the speed of light [c, default = 1.0]
-     * \param tdelay_user manual time delay if auto_tdelay is false
-     * \param auto_tdelay calculate the time delay such that the TWTS pulse is not
-     *  inside the simulation volume at simulation start timestep = 0 [default = true]
-     * \param pol_OoU determines the TWTS laser polarization, which is either normal or parallel
-     *  to the laser pulse front tilt plane [ default= LINEAR_X , LINEAR_YZ ]
+     * \param phi interaction angle between plane wave laser propagation vector and
+     *  the y-axis [rad, default = 90.*(PI/180.)]. 
+     *  These vectors span the interaction plane.
+     * \param beta_0_OoU propagation speed of laser pulse and electron bunch
+     *  overlap region. 
+     *  Normalized to the speed of light [c, default = 1.0]
+     * \param tdelay_user_SI manual time delay if auto_tdelay is false
+     *  [seconds]
+     * \param auto_tdelay calculate the time delay such that the 
+     *  plane wave laser starts at (approximately) zero amplitude 
+     *  at simulation start timestep = 0 [default = true]
+     * \param pol_OoU dtermines the plane wave laser polarization, 
+     *  which is either normal or parallel
+     *  to the interaction plane [ default= LINEAR_X , LINEAR_YZ ]
      */
     HINLINE
     BField( const float_64 focus_y_SI_OoU,
@@ -123,7 +141,7 @@ public:
             const float_64 w_x_SI_OoU,
             const float_64 w_y_SI_OoU,
             const float_X phi               = 90.*(PI / 180.),
-            const float_X beta_0            = 1.0,
+            const float_X beta_0_OoU        = 1.0,
             const float_64 tdelay_user_SI   = 0.0,
             const bool auto_tdelay          = true,
             const PolarizationType pol_OoU = LINEAR_X );
@@ -162,10 +180,10 @@ public:
 
 
 
-    /** Calculate the B-field vector of the TWTS laser in SI units.
+    /** Calculate the B-field vector of the plane wave laser in SI units.
      * \tparam T_dim Specializes for the simulation dimension
      * \param cellIdx The total cell id counted from the start at timestep 0
-     * \return B-field vector of the rotated TWTS field in SI units */
+     * \return B-field vector of the rotated plane wave field in SI units */
     template<unsigned T_dim>
     HDINLINE float3_X
     getTWTSBfield_Normalized(

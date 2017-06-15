@@ -165,7 +165,7 @@ public:
      * \param time Absolute time (SI, including all offsets and transformations)
      *  for calculating the field */
     HDINLINE float_T
-    calcTWTSBy( const float3_64& pos, const float_64 time ) const;
+    calcPwteBy( const float3_64& pos, const float_64 time ) const;
 
 
 
@@ -176,7 +176,7 @@ public:
      * \param time Absolute time (SI, including all offsets and transformations)
      *  for calculating the field */
     HDINLINE float_T
-    calcTWTSBz_Ex( const float3_64& pos, const float_64 time ) const;
+    calcPwteBz_Ex( const float3_64& pos, const float_64 time ) const;
 
 
 
@@ -186,7 +186,7 @@ public:
      * \return B-field vector of the rotated plane wave field in SI units */
     template<unsigned T_dim>
     HDINLINE float3_X
-    getTWTSBfield_Normalized(
+    getPwteBfield_Normalized(
             const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
             const float_64 time) const;
 };

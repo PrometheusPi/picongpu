@@ -41,7 +41,7 @@ namespace templates
 {
 namespace pwte
 {
-/** Auxiliary functions for calculating the TWTS field */
+/** Auxiliary functions for calculating the plane wave laser */
 namespace detail
 {
 
@@ -59,11 +59,10 @@ namespace detail
         {
             /*  Since, the laser propagation direction encloses an angle of phi with the
              *  simulation y-axis (i.e. direction of sliding window), the positions vectors are
-             *  rotated around the simulation x-axis before calling the TWTS field functions.
-             *  Note: The TWTS field functions are in non-rotated frame and only use the angle
-             *  phi to determine the required amount of pulse front tilt.
-             *  RotationMatrix[PI/2+phi].(y,z) (180Deg-flip at phi=90Deg since coordinate
-             *  system in paper is oriented the other way round.) */
+             *  rotated around the simulation x-axis before calling the Pwte field functions.
+             *  Note: The Pwte field functions are in non-rotated frame where the laser
+             *  propagates along the z-axis.
+             *  RotationMatrix[PI/2+phi].(y,z) (180Deg-flip at phi=90Deg) */
             return result(
                 fieldPosVector.x(),
                -math::sin(AngleType(phi))*fieldPosVector.y()
@@ -85,13 +84,20 @@ namespace detail
         {
             /*  Since, the laser propagation direction encloses an angle of phi with the
              *  simulation y-axis (i.e. direction of sliding window), the positions vectors are
-             *  rotated around the simulation x-axis before calling the TWTS field functions.
-             *  Note: The TWTS field functions are in non-rotated frame and only use the angle
-             *  phi to determine the required amount of pulse front tilt.
-             *  RotationMatrix[PI/2+phi].(y,z) (180Deg-flip at phi=90Deg since coordinate
-             *  system in paper is oriented the other way round.) */
+             *  rotated around the simulation x-axis before calling the Pwte field functions.
+             *  Note: The Pwte field functions are in non-rotated frame where the laser
+             *  propagates along the z-axis.
+             *  RotationMatrix[PI/2+phi].(y,z) (180Deg-flip at phi=90Deg) */
 
-            /*  Rotate 90 degree around y-axis, so that TWTS laser propagates within
+            /*
+             * This is basically the old implementation for TWTS.
+             * I did not touch it.
+             * Therefore there are still some mentions of 'TWTS' in here.
+             * 
+             * Handle with care!
+             */
+            
+            /*  Rotate 90 degree around y-axis, so that Pwte propagates within
              *  the 2D (x,y)-plane. Corresponding position vector for the Ez-components
              *  in 2D simulations.
              *  3D     3D vectors in 2D space (x,y)

@@ -34,7 +34,7 @@
 #include "pmacc_types.hpp"
 #include "math/Vector.hpp"
 #include "dimensions/DataSpace.hpp"
-#include "fields/background/templates/TWTS/numComponents.hpp"
+#include "fields/background/templates/plane-wave-w-temporal-envelope/numComponents.hpp"
 
 namespace picongpu
 {
@@ -42,7 +42,7 @@ namespace templates
 {
 namespace pwte
 {
-/** Auxiliary functions for calculating the TWTS field */
+/** Auxiliary functions for calculating the plane wave laser */
 namespace detail
 {
     /** Calculate the SI position vectors that later enter the Ex(r, t), By(r, t)
@@ -61,7 +61,7 @@ namespace detail
         const floatD_64 cellDim(picongpu::cellSize.shrink<simDim>());
         const floatD_64 cellDimensions = cellDim * unit_length;
 
-        /* TWTS laser coordinate origin is centered transversally and defined longitudinally by
+        /* Laser coordinate origin is centered transversally and defined longitudinally by
            the laser center in y (usually maximum of intensity). */
         floatD_X laserOrigin = precisionCast<float_X>(halfSimSize);
         //laserOrigin.y() = float_X( focus_y_SI/cellDimensions.y() );

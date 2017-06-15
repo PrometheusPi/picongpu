@@ -83,13 +83,13 @@ namespace pwte
 
     template<>
     HDINLINE float3_X
-    EField::getTWTSEfield_Normalized<DIM3>(
-                const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
-                const float_64 time) const
+    EField::getPwteEfield_Normalized<DIM3>(
+        const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+        const float_64 time) const
     {
         float3_64 pos(float3_64::create(0.0));
         for (uint32_t i = 0; i<simDim;++i) pos[i] = eFieldPositions_SI[0][i];
-        return float3_X( float_X( calcTWTSEx(pos,time) ),
+        return float3_X( float_X( calcPwteEx(pos,time) ),
                          float_X(0.), float_X(0.) );
     }
 
@@ -97,7 +97,7 @@ namespace pwte
 
     template<>
     HDINLINE float3_X
-    EField::getTWTSEfield_Normalized<DIM2>(
+    EField::getPwteEfield_Normalized<DIM2>(
         const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
         const float_64 time) const
     {
@@ -106,29 +106,26 @@ namespace pwte
         /* 2D (y,z) vectors are mapped on 3D (x,y,z) vectors. */
         for (uint32_t i = 0; i<DIM2;++i) pos[i+1] = eFieldPositions_SI[2][i];
         return float3_X( float_X(0.), float_X(0.),
-                         float_X( calcTWTSEx(pos,time) ) );
+                         float_X( calcPwteEx(pos,time) ) );
     }
 
 
 
     HDINLINE float3_X
     EField::operator()( const DataSpace<simDim>& cellIdx,
-                            const uint32_t currentStep ) const
+                        const uint32_t currentStep ) const
     {
         const float_64 time_SI = float_64(currentStep) * UNIT_TIME - tdelay;
         const fieldSolver::numericalCellType::traits::FieldPosition<FieldE> fieldPosE;
 
-        // Vector r is 3-dim of float_64 numbers
-        //const PMacc::math::Vector<floatD_64,detail::numComponents> eFieldPositions_SI =
-        //      detail::getFieldPositions_SI(cellIdx, halfSimSize,
-        //        fieldPosE(), UNIT_LENGTH, focus_y_SI, phi);
-
-        // Remove use of focus_y compared to Alex' original implementation
+        /* Removed use of focus_y compared to original TWTS implementation
+         * see (https://github.com/ComputationalRadiationPhysics/picongpu/blob/dcd493aaa6fcdd2b9de48209212fd7aa434d4b2f/src/picongpu/include/fields/background/templates/TWTS/EField.tpp#L183-L185)
+         */
         const PMacc::math::Vector<floatD_64,detail::numComponents> eFieldPositions_SI =
               detail::getFieldPositions_SI(cellIdx, halfSimSize,
                 fieldPosE(), UNIT_LENGTH, 0.0, phi);
 
-        return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI);
+        return getPwteEfield_Normalized<simDim>(eFieldPositions_SI, time_SI);
     }
 
 
@@ -139,7 +136,7 @@ namespace pwte
      * \param time Absolute time (SI, including all offsets and transformations) for calculating
      *             the field */
     HDINLINE EField::float_T
-    EField::calcTWTSEx( const float3_64& pos, const float_64 time) const
+    EField::calcPwteEx( const float3_64& pos, const float_64 time) const
     {
         /* Normalize width of temporal envelope.
          * Factor 2 in tauG arises from definition convention in laser formula 

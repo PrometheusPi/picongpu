@@ -81,7 +81,7 @@ namespace pwte
 
     template<>
     HDINLINE float3_X
-    BField::getTWTSBfield_Normalized<DIM3>(
+    BField::getPwteBfield_Normalized<DIM3>(
             const PMacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
             const float_64 time) const
     {
@@ -97,16 +97,15 @@ namespace pwte
 
         /* An example of intra-cell position offsets is the staggered Yee-grid.
          *
-         * Calculate By-component with the intra-cell offset of a By-field
-         */
-        const float_64 By_By = calcTWTSBy(pos[1], time);
+         * Calculate By-component with the intra-cell offset of a By-field*/
+        const float_64 By_By = calcPwteBy(pos[1], time);
         /* Calculate Bz-component the the intra-cell offset of a By-field */
-        const float_64 Bz_By = calcTWTSBz_Ex(pos[1], time);
+        const float_64 Bz_By = calcPwteBz_Ex(pos[1], time);
         /* Calculate By-component the the intra-cell offset of a Bz-field */
-        const float_64 By_Bz = calcTWTSBy(pos[2], time);
+        const float_64 By_Bz = calcPwteBy(pos[2], time);
         /* Calculate Bz-component the the intra-cell offset of a Bz-field */
-        const float_64 Bz_Bz = calcTWTSBz_Ex(pos[2], time);
-        /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz_Ex,
+        const float_64 Bz_Bz = calcPwteBz_Ex(pos[2], time);
+        /* Since we rotated all position vectors before calling calcPwteBy and calcPwteBz_Ex,
          * we need to back-rotate the resulting B-field vector.
          *
          * RotationMatrix[-(PI/2+phi)].(By,Bz) for rotating back the field vectors.
@@ -124,10 +123,17 @@ namespace pwte
 
     template<>
     HDINLINE float3_X
-    BField::getTWTSBfield_Normalized<DIM2>(
+    BField::getPwteBfield_Normalized<DIM2>(
             const PMacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
             const float_64 time) const
     {
+        /*
+         * This is basically the old implementation for TWTS.
+         * I did not touch it, except of updating function names,
+         * and therefore there are still some mentions of 'TWTS' in here.
+         * 
+         * Handle with care!
+         */
         typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
         PosVecVec pos(PosVecVec::create(
                                            float3_64::create(0.0)
@@ -163,14 +169,14 @@ namespace pwte
          */
 
         /* Calculate By-component with the intra-cell offset of a By-field */
-        const float_64 By_By =  calcTWTSBy(pos[1], time);
+        const float_64 By_By =  calcPwteBy(pos[1], time);
         /* Calculate Bx-component with the intra-cell offset of a By-field */
-        const float_64 Bx_By = -calcTWTSBz_Ex(pos[1], time);
+        const float_64 Bx_By = -calcPwteBz_Ex(pos[1], time);
         /* Calculate By-component with the intra-cell offset of a Bx-field */
-        const float_64 By_Bx =  calcTWTSBy(pos[0], time);
+        const float_64 By_Bx =  calcPwteBy(pos[0], time);
         /* Calculate Bx-component with the intra-cell offset of a Bx-field */
-        const float_64 Bx_Bx = -calcTWTSBz_Ex(pos[0], time);
-        /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz_Ex, we
+        const float_64 Bx_Bx = -calcPwteBz_Ex(pos[0], time);
+        /* Since we rotated all position vectors before calling calcPwteBy and calcPwteBz_Ex, we
          * need to back-rotate the resulting B-field vector. Now the rotation is done
          * analogously in the (y,x)-plane. (Reverse of the position vector transformation.)
          *
@@ -193,17 +199,15 @@ namespace pwte
     {
         const float_64 time_SI = float_64(currentStep) * UNIT_TIME - tdelay;
         const fieldSolver::numericalCellType::traits::FieldPosition<FieldB> fieldPosB;
-
-        //const PMacc::math::Vector<floatD_64,detail::numComponents> bFieldPositions_SI =
-        //      detail::getFieldPositions_SI(cellIdx, halfSimSize,
-        //        fieldPosB(), unit_length, focus_y_SI, phi);
         
-        // Remove use of focus_y compared to Alex' original implementation        
+        /* Removed use of focus_y compared to original TWTS implementation
+         * see (https://github.com/ComputationalRadiationPhysics/picongpu/blob/dcd493aaa6fcdd2b9de48209212fd7aa434d4b2f/src/picongpu/include/fields/background/templates/TWTS/BField.tpp#L278-L280)
+         */
         const PMacc::math::Vector<floatD_64,detail::numComponents> bFieldPositions_SI =
               detail::getFieldPositions_SI(cellIdx, halfSimSize,
                 fieldPosB(), UNIT_LENGTH, 0.0, phi);
         
-        return getTWTSBfield_Normalized<simDim>(bFieldPositions_SI, time_SI);
+        return getPwteBfield_Normalized<simDim>(bFieldPositions_SI, time_SI);
     }
 
 
@@ -214,7 +218,7 @@ namespace pwte
      * \param time Absolute time (SI, including all offsets and transformations)
      *             for calculating the field */
     HDINLINE BField::float_T
-    BField::calcTWTSBy( const float3_64& pos, const float_64 time ) const
+    BField::calcPwteBy( const float3_64& pos, const float_64 time ) const
     {
         /* Normalize width of temporal envelope.
          * factor 2  in tauG arises from definition convention in laser formula 
@@ -227,28 +231,32 @@ namespace pwte
          * the electric field as well!
          */ 
 
-        // Choosen such that the smooth step like envelope reaches its 
-        // maximum at approximately t=0 similar to the behaviour of a 
-        // (standard) gaussian envelope.
-        // This exact value is defined by requesting the gauss and the 
-        // step envelope to reach a value of 0.5 at the same time. 
+        /* Choosen such that the smooth step like envelope reaches its 
+         * maximum at approximately t=0 similar to the behaviour of a 
+         * (standard) gaussian envelope.
+         * This exact value is defined by requesting the gauss and the 
+         * step envelope to reach a value of 0.5 at the same time.
+         */
         const float_T temp_offset = - math::sqrt(math::log(float_T(2.0)))*tauG; 
 
-        // Slope of the temporal envelope
-        // The value is choosen at whim with the aim to resemble the 
-        // slope of a gaussian envelope
+        /* Slope of the temporal envelope
+         * The value is choosen at whim with the aim to resemble the 
+         * slope of a gaussian envelope
+         */
         //const float_T temp_slope = float_T(1./(.7*tauG)); // use for erf-startup
         const float_T temp_slope = float_T(4./tauG); // use for tanh-startup
         
-        // Determine from the current simulation time the proper phase 
-        // of the envelopes temporal evolution
+        /* Determine from the current simulation time the proper phase 
+         * of the envelopes temporal evolution
+         */
         const float_T envelope_phase = 
             temp_slope*(float_T(time/UNIT_TIME) - temp_offset);
         
-        // Smooth step-like temporal envelope by an error function or
-        // a tangens hyperbolicus.
-        // Both reache the value 0.5 at the same time a gaussian envelope of
-        // the form exp(-t**2/tauG**2) reaches 0.5. 
+        /* Smooth step-like temporal envelope by an error function or
+         * a tangens hyperbolicus.
+         * Both reache the value 0.5 at the same time a gaussian envelope 
+         * of the form exp(-t**2/tauG**2) reaches 0.5. 
+         */
         //const float_T temp_envelope = float_T(0.5)
         //    *(float_T(1.0) + math::erf(temp_slope*(t - temp_offset))); // erf-startup
         const float_T temp_envelope = float_T(1.0)
@@ -269,7 +277,7 @@ namespace pwte
      * \param time Absolute time (SI, including all offsets and transformations)
      *             for calculating the field */
     HDINLINE BField::float_T
-    BField::calcTWTSBz_Ex( const float3_64& pos, const float_64 time ) const
+    BField::calcPwteBz_Ex( const float3_64& pos, const float_64 time ) const
     {
         return float_T(0.0) / UNIT_SPEED;
     }

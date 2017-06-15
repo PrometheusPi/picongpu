@@ -163,7 +163,7 @@ public:
      *  for calculating the field
      * \return Ex-field component of the non-rotated plane wave field in SI units */
     HDINLINE float_T
-    calcTWTSEx( const float3_64& pos, const float_64 time ) const;
+    calcPwteEx( const float3_64& pos, const float_64 time ) const;
 
 
 
@@ -173,7 +173,7 @@ public:
      * \return Efield vector of the rotated plane wave field in SI units */
     template <unsigned T_dim>
     HDINLINE float3_X
-    getTWTSEfield_Normalized(
+    getPwteEfield_Normalized(
             const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
             const float_64 time) const;
 };

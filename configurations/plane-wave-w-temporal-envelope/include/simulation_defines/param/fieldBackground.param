@@ -85,10 +85,10 @@ namespace picongpu
         /** Manually define time delay between simulation start and 
          * the time at which the temporal envelope reaches its maximum.
          * Necessary if auto_tdelay is false.
-		 * Advice: choose three times the pulse fwhm duration
+         * Advice: choose three times the pulse fwhm duration
          * 
          * unit: [seconds]
-		 */
+         */
         constexpr float_64 TIME_DELAY = 3.*PULSE_FWHM_DURATION_SI;
 
         /** Convert the normalized laser strength parameter a0 to Volt per meter */
@@ -144,9 +144,6 @@ namespace picongpu
                 /* Polarization of plane wave laser field */
                 templates::pwte::EField::LINEAR_X )
         {}
-
-        //HDINLINE FieldBackgroundE( const float3_64 unitField ) : m_unitField(unitField)
-        //{}
 
         /** Specify your background field E(r,t) here
          *
@@ -219,9 +216,6 @@ namespace picongpu
                 templates::pwte::BField::LINEAR_X )
         {}
 
-        //HDINLINE FieldBackgroundB( const float3_64 unitField ) : m_unitField(unitField)
-        //{}
-
         /** Specify your background field B(r,t) here
          *
          * \param cellIdx The total cell id counted from the start at t=0
@@ -242,7 +236,9 @@ namespace picongpu
             const float3_X amplitude = precisionCast<float_X>(
                     float_64(planeWaveBackgroundField::AMPLITUDE_SI) * invUnitField );
 
-            /* Note: pwteFieldB(...) is normalized, such that peak amplitude equals unity. */
+            /* Note: pwteFieldB(...) is normalized, such that peak amplitude equals unity. 
+             * pwteFieldB(...)  returns the field in unit 1 / (speed of light).
+             * */
             return    amplitude * pwteFieldB1( cellIdx, currentStep );
         }
     }; //class FieldBackgroundB

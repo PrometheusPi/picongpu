@@ -128,7 +128,7 @@ public:
      * \param auto_tdelay calculate the time delay such that the 
      *  plane wave laser starts at (approximately) zero amplitude 
      *  at simulation start timestep = 0 [default = true]
-     * \param pol_OoU dtermines the plane wave laser polarization, 
+     * \param pol_OoU determines the plane wave laser polarization, 
      *  which is either normal or parallel
      *  to the interaction plane [ default= LINEAR_X , LINEAR_YZ ]
      */

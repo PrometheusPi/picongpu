@@ -141,7 +141,11 @@ namespace picongpu
                 planeWaveBackgroundField::TIME_DELAY,
                 /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
                 false,
-                /* Polarization of plane wave laser field */
+                /* Polarization of plane wave laser field 
+                 * NOT USED
+                 * 
+                 * Polarization is always along x-direction.
+                 * */
                 templates::pwte::EField::LINEAR_X )
         {}
 

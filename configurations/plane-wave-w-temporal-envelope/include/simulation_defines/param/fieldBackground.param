@@ -1,0 +1,285 @@
+/**
+ * Copyright 2014-2017 Axel Huebl, Alexander Debus, Klaus Steiniger
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+/** Load pre-defined templates */
+#include "fields/background/templates/plane-wave-w-temporal-envelope/plane-wave-w-temporal-envelope.hpp"
+
+#ifndef PARAM_INCLUDE_FIELDBACKGROUND
+#define PARAM_INCLUDE_FIELDBACKGROUND true
+#endif
+
+/** Load external background fields
+ *
+ */
+namespace picongpu
+{
+    namespace planeWaveBackgroundField
+    {
+        /**
+         * Parameters of the plane wave laser with temporal envelope.
+         * The temporal envelope is modelled by a tanh function, i.e.
+         *     1 / (1 + exp[ -4*(t - t0)/tauG ]),
+         * where the slope 4/tauG is choosen to resemble the slope of 
+         * a gaussian of the form exp[-(t/tauG)^2].
+         * The temporal offset 
+         *     t0 = - sqrt[ln(2)]*tauG
+         * of the tanh function is chosen such that the tanh function and
+         * the corresponding gaussian reach half of their maximum value 
+         * at the same time.
+         * In the following, the pulse_fwhm_duration parameter of the plane wave
+         * field with temporal envelope is to be understood as the duration 
+         * of the corresponding gaussian, i.e.
+         *     tauG = pulse_fwhm_duration / sqrt[2 * ln(2)],
+         * which defines the slope of the plane waves temporal envelope.
+         * 
+         * Central parameter definitions are here. 
+         * These are used multiple times later.
+         */
+        
+        /** Laser wavelength
+         * unit: [meter]*/
+        constexpr float_64 WAVE_LENGTH_SI = 1.035e-6;
+        
+        /** Laser pulse duration: sigma of std. gauss for intensity (E^2)
+         * PULSE_FWHM_DURATION_SI = FWHM_of_Intensity = FWHM_Illumination
+         *                        = what an experimentalist calls "pulse duration"
+         * PULSE_DURATION_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+         *                                          [    2.354820045     ]
+         *
+         *  unit: [seconds] (1 sigma) */
+        constexpr float_64 PULSE_FWHM_DURATION_SI = 15.e-15;
+        constexpr float_64 PULSE_DURATION_SI = PULSE_FWHM_DURATION_SI / 2.354820045;
+        
+        /** Dimensionless laser strength parameter
+         * 
+         * unit: none */
+        constexpr float_64 _A0  = 2.0;
+        
+        /** Interaction angle enclosed by the propagation directions of 
+         * laser and electrons.
+         * Electron propagation direction is (typically) along the y-axis.
+         * Counted clockwise from the electron propagation direction.
+         * 
+         * unit: none */
+        constexpr float_64 INTERACTION_ANGLE  = -0.5*PI;
+        
+        /** Manually define time delay between simulation start and 
+         * the time at which the temporal envelope reaches its maximum.
+         * Necessary if auto_tdelay is false.
+         * Advice: choose three times the pulse fwhm duration
+         * 
+         * unit: [seconds]
+         */
+        constexpr float_64 TIME_DELAY = 3.*PULSE_FWHM_DURATION_SI;
+
+        /** Convert the normalized laser strength parameter a0 to Volt per meter */
+        constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+
+        /** unit: Volt / meter */
+        constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+    
+    } // namespace planeWaveBackgroundField
+   
+    
+    
+    class FieldBackgroundE
+    {
+    public:
+        /* Add this additional field for pushing particles */
+        static constexpr bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
+
+        /* We use this to calculate your SI input back to our unit system */
+        PMACC_ALIGN(m_unitField, const float3_64);
+
+        /* Plane wave E-field needs to be initialized on host,
+         *  so they can look up global grid dimensions. */
+        const templates::pwte::EField pwteFieldE1;
+
+        /* Constructor is host-only, because of subGrid and halfSimSize initialization */
+        HINLINE FieldBackgroundE( const float3_64 unitField ) : 
+
+            m_unitField(unitField),
+
+            pwteFieldE1(
+                /* focus_y [m], offset of the laser focus position in y-direction with respect to y=0 */
+                /* NOT USED */
+                0., 
+                /* wavelength [m] */
+                planeWaveBackgroundField::WAVE_LENGTH_SI,
+                /* pulselength [s], sigma of std. gauss for intensity (E^2) */
+                planeWaveBackgroundField::PULSE_DURATION_SI,
+                /* w_x [m], cylindrically focused spot size */
+                /* NOT USED */
+                0.,
+                /* w_y [m] */
+                /* NOT USED */
+                0.,
+                /* interaction angle between plane wave laser propagation vector and the y-axis [rad] */
+                planeWaveBackgroundField::INTERACTION_ANGLE,
+                /* propagation speed of overlap [speed of light]. */
+                1.0,
+                /* manual time delay [s] if auto_tdelay is false */
+                planeWaveBackgroundField::TIME_DELAY,
+                /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
+                false,
+                /* Polarization of plane wave laser field 
+                 * NOT USED
+                 * 
+                 * Polarization is always along x-direction.
+                 * */
+                templates::pwte::EField::LINEAR_X )
+        {}
+
+        /** Specify your background field E(r,t) here
+         *
+         * \param cellIdx The total cell id counted from the start at t = 0
+         * \param currentStep The current time step */
+        HDINLINE float3_X
+        operator()( const DataSpace<simDim>& cellIdx,
+                    const uint32_t currentStep ) const
+        {
+            /** unit: Volt /meter */
+            /*\todo #738 implement math::vector, native type operations */
+            const float3_64 invUnitField = float3_64(1.0 / m_unitField[0],
+                                                     1.0 / m_unitField[1],
+                                                     1.0 / m_unitField[2] );
+
+            /* laser amplitude in picongpu units [ unit: (Volt /meter) / unitField-factor ]
+             * Note: the laser amplitude is included in all field components
+             * polarization and other properties are established by the peak amplitude
+             * normalized pwteFieldE(...) */
+            const float3_X amplitude = precisionCast<float_X>(
+                    float_64(planeWaveBackgroundField::AMPLITUDE_SI) * invUnitField );
+
+            /* Note: pwteFieldE(...) is normalized, such that peak amplitude equals unity. */
+            return amplitude * pwteFieldE1( cellIdx, currentStep );
+        }
+    }; //class FieldBackgroundE
+
+
+
+    class FieldBackgroundB
+    {
+    public:
+        /* Add this additional field for pushing particles */
+        static constexpr bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
+
+        /* Plane wave B-fields need to be initialized on host,
+         * so they can look up global grid dimensions. */
+        templates::pwte::BField pwteFieldB1;
+
+        /* We use this to calculate your SI input back to our unit system */
+        PMACC_ALIGN(m_unitField, const float3_64);
+
+        HINLINE FieldBackgroundB( const float3_64 unitField ) :
+
+            m_unitField(unitField),
+
+            pwteFieldB1(
+                /* focus_y [m], the distance to the laser focus in y-direction */
+                /* NOT USED */
+                0.0,
+                /* wavelength [m] */
+                planeWaveBackgroundField::WAVE_LENGTH_SI,
+                /* pulselength [s], sigma of std. gauss for intensity (E^2) */
+                planeWaveBackgroundField::PULSE_DURATION_SI,
+                /* w_x [m], cylindrically focused spot size */
+                /* NOT USED */
+                0.,
+                /* w_y [m] */
+                /* NOT USED */
+                0.,
+                /* interaction angle between plane wave laser propagation vector and the y-axis [rad] */
+                planeWaveBackgroundField::INTERACTION_ANGLE,
+                /* propagation speed of overlap [speed of light]. */
+                1.0,
+                /* manual time delay [s] if auto_tdelay is false */
+                planeWaveBackgroundField::TIME_DELAY,
+                /* Should PIConGPU automatically choose a suitable time delay? [true / false] */
+                false,
+                /* Polarization of plane wave laser field */
+                templates::pwte::BField::LINEAR_X )
+        {}
+
+        /** Specify your background field B(r,t) here
+         *
+         * \param cellIdx The total cell id counted from the start at t=0
+         * \param currentStep The current time step */
+        HDINLINE float3_X
+        operator()( const DataSpace<simDim>& cellIdx,
+                    const uint32_t currentStep ) const
+        {
+            /** unit: Volt /meter */
+            const float3_64 invUnitField = float3_64( 1.0 / m_unitField[0],
+                                                      1.0 / m_unitField[1],
+                                                      1.0 / m_unitField[2] );
+
+            /* laser amplitude in picongpu units [ unit: (Volt/meter) / unitField-factor ]
+             * Note: the laser amplitude is included in all field components
+             * polarization and other properties are established by the peak amplitude
+             * normalized pwteFieldB(...) */
+            const float3_X amplitude = precisionCast<float_X>(
+                    float_64(planeWaveBackgroundField::AMPLITUDE_SI) * invUnitField );
+
+            /* Note: pwteFieldB(...) is normalized, such that peak amplitude equals unity. 
+             * pwteFieldB(...)  returns the field in unit 1 / (speed of light).
+             * */
+            return    amplitude * pwteFieldB1( cellIdx, currentStep );
+        }
+    }; //class FieldBackgroundB
+
+
+
+    class FieldBackgroundJ
+    {
+    public:
+        /* Add this additional field? */
+        static constexpr bool activated = false;
+
+        /* We use this to calculate your SI input back to our unit system */
+        PMACC_ALIGN(m_unitField, const float3_64);
+
+        HDINLINE FieldBackgroundJ( const float3_64 unitField ) : m_unitField(unitField)
+        {}
+
+        /** Specify your background field J(r,t) here
+         *
+         * \param cellIdx The total cell id counted from the start at t=0
+         * \param currentStep The current time step */
+        HDINLINE float3_X
+        operator()( const DataSpace<simDim>& cellIdx,
+                    const uint32_t currentStep ) const
+        {
+            /* example: periodicity of 20 microns ( = 2.0e-5 m) */
+            constexpr float_64 period_SI(20.0e-6);
+            /* calculate cells -> SI -> m to microns*/
+            const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
+            /* note: you can also transform the time step to seconds by
+             *       multiplying with DELTA_T_SI */
+
+            /* specify your J-Field in A/m^2 and convert to PIConGPU units */
+            const float_X sinArg = precisionCast<float_X>( y_SI / period_SI * 2.0 * PI );
+            return float3_X(0.0, math::cos( sinArg ) / m_unitField[1], 0.0);
+        }
+    }; // class FieldBackgroundJ
+
+} // namespace picongpu

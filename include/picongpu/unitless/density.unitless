@@ -26,6 +26,9 @@ namespace picongpu
 {
     constexpr float_X BASE_DENSITY =
         float_X( SI::BASE_DENSITY_SI * UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH );
+
+    /* check if density is not negative */
+    PMACC_CASSERT_MSG( You_can_not_set_negative_base_density___change_denisty_param, (BASE_DENSITY < 0.0) );
 }
 
 #include "picongpu/particles/densityProfiles/profiles.hpp"

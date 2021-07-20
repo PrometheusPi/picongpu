@@ -169,10 +169,11 @@ namespace picongpu
                     {
                         /* currently a fixed sigma of DELTA_T * c is used to describe the distribution - might become a
                          * parameter */
-                        const float_X baseValue_toThePower4
-                            = util::square(util::square(1.0 / (0.025 * DELTA_T * DELTA_T * omega * omega + 1.0)));
-                        return math::sqrt(
-                            N + (N * N - N) * baseValue_toThePower4 * baseValue_toThePower4 * baseValue_toThePower4);
+                        // optimized paramter for exponent 16 (see picongpu PR #3696 for details):
+                        const float_x alpha = 0.0172169f;
+                        const float_X baseValue_toThePower16 = util::square(util::square(
+                            util::square(util::square(1.0 / (alpha * DELTA_T * DELTA_T * omega * omega + 1.0)))));
+                        return math::sqrt(N + (N * N - N) * baseValue_toThePower16);
                     }
                 };
             } // namespace radFormFactor_Gauss_spherical_simple

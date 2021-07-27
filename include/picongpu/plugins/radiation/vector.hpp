@@ -81,6 +81,16 @@ namespace picongpu
                     return (*this);
                 }
 
+	      template<typename Vin, typename Tin>
+                HDINLINE cuda_vec<V, T>& operator=(const cuda_vec<Vin, Tin>& other)
+                {
+		  this->x() = static_cast<T>(other.x());
+		  this->y() = static_cast<T>(other.y());
+		  this->z() = static_cast<T>(other.z());
+		  return (*this);
+                }
+
+
                 HDINLINE T& operator[](uint32_t dim)
                 {
                     return (&(this->x()))[dim];

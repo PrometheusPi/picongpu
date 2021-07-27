@@ -40,6 +40,17 @@ namespace picongpu
                 template<uint32_t T_shapeOrder>
                 struct radFormFactor
                 {
+                    float_X precomputed;
+
+                    HDINLINE radFormFactor(const float_X omega, vector_X const& observer_unit_vec)
+                    {
+                        float_X sincValue = float_X(1.0);
+                        for(uint32_t d = 0; d < DIM3; ++d)
+                            sincValue *= pmacc::math::sinc(
+                                observer_unit_vec[d] * cellSize[d] / (SPEED_OF_LIGHT * float_X(2.0)) * omega);
+                        precomputed = util::pow(sincValue, 2 * T_shapeOrder);
+                    }
+
                     /** Form Factor for T_shapeOrder-order particle shape charge distribution of N discrete electrons:
                      * \f[ | \mathcal{F} |^2 = N + (N*N - N) * (sinc^2(n_x * L_x * \omega) * sinc^2(n_y * L_y * \omega)
                      * * sinc^2(n_z * L_z * \omega))^T_shapeOrder \f]
@@ -56,15 +67,10 @@ namespace picongpu
                      * @return the Form Factor: \f$ \sqrt( | \mathcal{F} |^2 ) \f$
                      */
                     HDINLINE float_X
-                    operator()(const float_X N, const float_X omega, vector_X const& observer_unit_vec) const
+                    operator()(const float_X N) const
                     {
-                        float_X sincValue = float_X(1.0);
-                        for(uint32_t d = 0; d < DIM3; ++d)
-                            sincValue *= pmacc::math::sinc(
-                                observer_unit_vec[d] * cellSize[d] / (SPEED_OF_LIGHT * float_X(2.0)) * omega);
-
                         // here we combine sinc^2(..) with (...)^T_shapeOrder to ...^(2 * T_shapeOrder)
-                        return math::sqrt(N + (N * N - N) * util::pow(sincValue, 2 * T_shapeOrder));
+                        return math::sqrt(N + (N * N - N) * precomputed);
                     }
                 };
             } // namespace radFormFactor_baseShape_3D
@@ -96,6 +102,13 @@ namespace picongpu
             {
                 struct radFormFactor
                 {
+                    float_X const precomputed;
+
+                    HDINLINE radFormFactor(const float_X omega, const vector_X observer_unit_vec):
+                        precomputed(util::square(
+                                    pmacc::math::sinc(CELL_HEIGHT / (SPEED_OF_LIGHT * float_X(2.0)) * omega)))
+                    {}
+
                     /** Form Factor for 1-d CIC charge distribution iy y of N discrete electrons:
                      * \f[ | \mathcal{F} |^2 = N + (N*N - N) * sinc^2(n_y * L_y * \omega) \f]
                      *
@@ -111,13 +124,9 @@ namespace picongpu
                      * @return the Form Factor: \f$ \sqrt( | \mathcal{F} |^2 ) \f$
                      */
                     HDINLINE float_X
-                    operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
+                    operator()(const float_X N) const
                     {
-                        return math::sqrt(
-                            N
-                            + (N * N - N)
-                                * util::square(
-                                    pmacc::math::sinc(CELL_HEIGHT / (SPEED_OF_LIGHT * float_X(2.0)) * omega)));
+                        return math::sqrt(N + (N * N - N) * precomputed);
                     }
                 };
             } // namespace radFormFactor_CIC_1Dy
@@ -127,6 +136,12 @@ namespace picongpu
             {
                 struct radFormFactor
                 {
+                    float_X const precomputed;
+
+                    HDINLINE radFormFactor(const float_X omega, const vector_X observer_unit_vec):
+                        precomputed(math::exp(float_X(-1.0) * util::square(omega * float_X(0.5) * DELTA_T)))
+                    {}
+
                     /** Form Factor for point-symmetric Gauss-shaped charge distribution of N discrete electrons:
                      * \f[ <rho(r)> = N*q_e* 1/sqrt(2*pi*sigma^2) * exp(-0.5 * r^2/sigma^2) \f]
                      * with sigma = 0.5*c/delta_t (0.5 because sigma is defined around center)
@@ -137,12 +152,11 @@ namespace picongpu
                      * @return the Form Factor: \f$ \sqrt( | \mathcal{F} |^2 ) \f$
                      */
                     HDINLINE float_X
-                    operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
+                    operator()(const float_X N) const
                     {
                         /* currently a fixed sigma of DELTA_T * c is used to describe the distribution - might become a
                          * parameter */
-                        return math::sqrt(
-                            N + (N * N - N) * math::exp(float_X(-1.0) * util::square(omega * float_X(0.5) * DELTA_T)));
+                        return math::sqrt(N + (N * N - N) * precomputed);
                     }
                 };
             } // namespace radFormFactor_Gauss_spherical
@@ -152,6 +166,21 @@ namespace picongpu
             {
                 struct radFormFactor
                 {
+                    float_X const precomputed;
+
+                    HDINLINE radFormFactor(const float_X omega, const vector_X observer_unit_vec):
+                        precomputed(
+                            util::square(
+                                util::square(
+                                    util::square(
+                                        util::square(1.0 / (0.0172169_X * DELTA_T * DELTA_T * omega * omega + 1.0))
+                                    )
+                                )
+                            )
+                        )
+                    {
+                    }
+
                     /** Form Factor for point-symmetric Gauss-shaped charge distribution of N discrete electrons:
                      * \f[ <rho(r)> = N*q_e* 1/sqrt(2*pi*sigma^2) * exp(-0.5 * r^2/sigma^2) \f]
                      * with sigma = 0.5*c/delta_t (0.5 because sigma is defined around center)
@@ -165,15 +194,12 @@ namespace picongpu
                      * @return the Form Factor: \f$ \sqrt( | \mathcal{F} |^2 ) \f$
                      */
                     HDINLINE float_X
-                    operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
+                    operator()(const float_X N) const
                     {
                         /* currently a fixed sigma of DELTA_T * c is used to describe the distribution - might become a
                          * parameter */
                         // optimized paramter for exponent beta=16 (see picongpu PR #3696 for details):
-                        constexpr float_X alpha = 0.0172169_X;
-                        const float_X baseValue_toThePower16 = util::square(util::square(
-                            util::square(util::square(1.0 / (alpha * DELTA_T * DELTA_T * omega * omega + 1.0)))));
-                        return math::sqrt(N + (N * N - N) * baseValue_toThePower16);
+                        return math::sqrt(N + (N * N - N) * precomputed);
                     }
                 };
             } // namespace radFormFactor_Gauss_spherical_simple
@@ -183,6 +209,23 @@ namespace picongpu
             {
                 struct radFormFactor
                 {
+                    float_X const precomputed;
+
+                    HDINLINE radFormFactor(const float_X omega, const vector_X observer_unit_vec):
+                        precomputed(util::square(math::exp(
+                                    float_X(-0.5)
+                                    * (util::square(
+                                           observer_unit_vec.x() * CELL_WIDTH / (SPEED_OF_LIGHT * float_X(2.0))
+                                           * omega)
+                                       + util::square(
+                                           observer_unit_vec.y() * CELL_HEIGHT / (SPEED_OF_LIGHT * float_X(2.0))
+                                           * omega)
+                                       + util::square(
+                                           observer_unit_vec.z() * CELL_DEPTH / (SPEED_OF_LIGHT * float_X(2.0))
+                                           * omega)))))
+                    {
+                    }
+
                     /** Form Factor for per-dimension Gauss-shaped charge distribution of N discrete electrons:
                      * \f[ <rho(r)> = N*q_e* product[d={x,y,z}](1/sqrt(2*pi*sigma_d^2) * exp(-0.5 * d^2/sigma_d^2)) \f]
                      * with sigma_d = 0.5*cell_width_d*n_d
@@ -193,22 +236,12 @@ namespace picongpu
                      * @return the Form Factor: \f$ \sqrt( | \mathcal{F} |^2 ) \f$
                      */
                     HDINLINE float_X
-                    operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
+                    operator()(const float_X N) const
                     {
                         return math::sqrt(
                             N
                             + (N * N - N)
-                                * util::square(math::exp(
-                                    float_X(-0.5)
-                                    * (util::square(
-                                           observer_unit_vec.x() * CELL_WIDTH / (SPEED_OF_LIGHT * float_X(2.0))
-                                           * omega)
-                                       + util::square(
-                                           observer_unit_vec.y() * CELL_HEIGHT / (SPEED_OF_LIGHT * float_X(2.0))
-                                           * omega)
-                                       + util::square(
-                                           observer_unit_vec.z() * CELL_DEPTH / (SPEED_OF_LIGHT * float_X(2.0))
-                                           * omega)))));
+                                * precomputed);
                     }
                 };
             } // namespace radFormFactor_Gauss_cell
@@ -218,6 +251,9 @@ namespace picongpu
             {
                 struct radFormFactor
                 {
+                    HDINLINE radFormFactor(const float_X omega, const vector_X observer_unit_vec)
+                    {}
+
                     /** Form Factor for an incoherent charge distribution:
                      *
                      * @param N = macro particle weighting
@@ -226,7 +262,7 @@ namespace picongpu
                      * @return the Form Factor: \f$ \sqrt( | \mathcal{F} |^2 == \sqrt(weighting) \f$
                      */
                     HDINLINE float_X
-                    operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
+                    operator()(const float_X N) const
                     {
                         return math::sqrt(N);
                     }
@@ -238,6 +274,9 @@ namespace picongpu
             {
                 struct radFormFactor
                 {
+                    HDINLINE radFormFactor(const float_X omega, const vector_X observer_unit_vec)
+                    {}
+
                     /** Form Factor for a coherent charge distribution:
                      *
                      * @param N = macro particle weighting
@@ -246,7 +285,7 @@ namespace picongpu
                      * @return the Form Factor: \f$ \sqrt( | \mathcal{F} |^2 == \sqrt(weighting) \f$
                      */
                     HDINLINE float_X
-                    operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
+                    operator()(const float_X N) const
                     {
                         return N;
                     }

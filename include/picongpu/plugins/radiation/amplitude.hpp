@@ -50,23 +50,23 @@ namespace picongpu
                  * Arguments:
                  * - vector_64: real 3D vector
                  * - float: complex phase */
-                DINLINE Amplitude(vector_64 vec, picongpu::float_X phase)
+                DINLINE Amplitude(Vector<T_Float> vec, T_Float phase)
                 {
-                    picongpu::float_X cosValue;
-                    picongpu::float_X sinValue;
+                    T_Float cosValue;
+                    T_Float sinValue;
                     pmacc::math::sincos(phase, sinValue, cosValue);
                     amp_x = pmacc::math::euler(
-                        precisionCast<T_Float>(vec.x()),
-                        precisionCast<T_Float>(sinValue),
-                        precisionCast<T_Float>(cosValue));
+                        vec.x(),
+                        sinValue,
+                        cosValue);
                     amp_y = pmacc::math::euler(
-                        precisionCast<T_Float>(vec.y()),
-                        precisionCast<T_Float>(sinValue),
-                        precisionCast<T_Float>(cosValue));
+                        vec.y(),
+                        sinValue,
+                        cosValue);
                     amp_z = pmacc::math::euler(
-                        precisionCast<T_Float>(vec.z()),
-                        precisionCast<T_Float>(sinValue),
-                        precisionCast<T_Float>(cosValue));
+                        vec.z(),
+                        sinValue,
+                        cosValue);
                 }
 
                 /** default constructor

@@ -39,7 +39,7 @@ namespace picongpu
                  * so that all Amplitudes for higher frequencies can be ignored
                  **/
                 HDINLINE NyquistLowPass(const vector_64& n, const Particle& particle)
-                    : omegaNyquist((PI - 0.01) / (DELTA_T * One_minus_beta_times_n()(n, particle)))
+                    : omegaNyquist((PI - 0.01) / (DELTA_T * One_minus_beta_times_n()(n, particle))  * radiationNyquist::NyquistFactor)
                 {
                 }
 
@@ -54,13 +54,13 @@ namespace picongpu
                 /**
                  * checks if frequency omega is below Nyquist frequency
                  **/
-                HDINLINE bool check(const float_32 omega)
+                HDINLINE bool check(const float_X omega) const
                 {
-                    return omega < omegaNyquist * radiationNyquist::NyquistFactor;
+                    return omega < omegaNyquist;
                 }
 
             private:
-                float_32 omegaNyquist; // Nyquist frequency for a particle (at a certain time step) for one direction
+                float_X omegaNyquist; // Nyquist frequency for a particle (at a certain time step) for one direction
             };
 
         } // namespace radiation

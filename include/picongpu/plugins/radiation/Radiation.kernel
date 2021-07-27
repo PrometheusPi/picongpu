@@ -129,10 +129,10 @@ namespace picongpu
                     constexpr int blockSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
                     // vectorial part of the integrand in the Jackson formula
-                    PMACC_SMEM(acc, real_amplitude_s, memory::Array<vector_64, blockSize>);
+                    PMACC_SMEM(acc, real_amplitude_s, memory::Array<vector_X, blockSize>);
 
                     // retarded time
-                    PMACC_SMEM(acc, t_ret_s, memory::Array<picongpu::float_64, blockSize>);
+                    PMACC_SMEM(acc, t_ret_s, memory::Array<picongpu::float_X, blockSize>);
 
                     // storage for macro particle weighting needed if
                     // the coherent and incoherent radiation of a single
@@ -315,10 +315,10 @@ namespace picongpu
                                              * a single electron
                                              */
                                             real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look)
-                                                * particle_charge * picongpu::float_64(DELTA_T);
+												      * particle_charge * picongpu::float_64(DELTA_T);
 
                                             // retarded time stored in shared memory
-                                            t_ret_s[saveParticleAt] = amplitude3.get_t_ret(look);
+                                            t_ret_s[saveParticleAt] = static_cast<float_X>(amplitude3.get_t_ret(look));
 
                                             lowpass_s[saveParticleAt] = NyquistLowPass(look, particle);
 
@@ -328,7 +328,7 @@ namespace picongpu
                                             radWindowFunction::radWindowFunction const winFkt;
 
                                             /* start with a factor of one */
-                                            float_X windowFactor = 1.0;
+                                            float_X windowFactor = 1.0_X;
 
                                             for(uint32_t d = 0; d < simDim; ++d)
                                             {
@@ -359,10 +359,10 @@ namespace picongpu
                                 Amplitude amplitude = Amplitude::zero();
 
                                 // compute frequency "omega" using for-loop-index "o"
-                                picongpu::float_64 const omega = freqFkt(o);
+                                picongpu::float_X const omega = static_cast<float_X>(freqFkt(o));
 
                                 // create a form factor object
-                                radFormFactor::radFormFactor const myRadFormFactor{};
+                                radFormFactor::radFormFactor const myRadFormFactor{omega, look};
 
                                 /* Particle loop: thread runs through loaded particle data
                                  *
@@ -380,16 +380,16 @@ namespace picongpu
                                          ****************************************************/
 
                                         // calulate the form factor's' influences to the real amplitude
-                                        vector_64 const weighted_real_amp = real_amplitude_s[j]
-                                            * precisionCast<float_64>(myRadFormFactor(radWeighting_s[j], omega, look));
+                                        vector_X const weighted_real_amp = real_amplitude_s[j]
+                                            * myRadFormFactor(radWeighting_s[j]);
 
                                         /* complex amplitude increment for j-th particle
                                          * It is local to the loop and can be single precision
                                          */
-                                        Amplitude amplitude_add(weighted_real_amp, t_ret_s[j] * omega);
+                                        picongpu::plugins::radiation::Amplitude<float_X> amplitude_add(weighted_real_amp, t_ret_s[j] * omega);
 
                                         // add this single amplitude those previously considered
-                                        amplitude += amplitude_add;
+                                        amplitude += precisionCast<float_64>(amplitude_add);
 
                                     } // END: check Nyquist-limit for each particle "j" and each frequency "omega"
 

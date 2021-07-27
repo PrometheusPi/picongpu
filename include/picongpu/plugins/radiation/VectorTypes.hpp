@@ -34,6 +34,28 @@ namespace picongpu
             using vector_X = cuda_vec<picongpu::float3_X, picongpu::float_X>;
             using vector_32 = /*__align__(16)*/ cuda_vec<picongpu::float3_32, picongpu::float_32>;
             using vector_64 = /*__align__(32)*/ cuda_vec<picongpu::float3_64, picongpu::float_64>;
+
+	    namespace detail
+	    {
+	      template<typename T>
+	      struct Vector;
+	      
+	      template<>
+	      struct Vector<picongpu::float_32>
+	      {
+		using type = vector_32;
+	      };
+	    
+	      template<>
+	      struct Vector<picongpu::float_64>
+	      {
+		using type = vector_64;
+	      };
+	    }
+	  
+	    template<typename T>
+	    using Vector = typename detail::Vector<T>::type;
+	  
         } // namespace radiation
     } // namespace plugins
 } // namespace picongpu

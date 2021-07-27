@@ -386,7 +386,7 @@ namespace picongpu
                                         /* complex amplitude increment for j-th particle
                                          * It is local to the loop and can be single precision
                                          */
-                                        picongpu::plugins::radiation::Amplitude<float_X> amplitude_add(weighted_real_amp, t_ret_s[j] * omega);
+                                        const picongpu::plugins::radiation::Amplitude<float_X> amplitude_add(weighted_real_amp, t_ret_s[j] * omega);
 
                                         // add this single amplitude those previously considered
                                         amplitude += precisionCast<float_64>(amplitude_add);

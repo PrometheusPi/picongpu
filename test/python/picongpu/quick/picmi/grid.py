@@ -18,25 +18,29 @@ class TestCartesian3DGrid(unittest.TestCase):
         """simple translation"""
         grid = self.grid
         g = grid.get_as_pypicongpu()
-        assert [] != g.get_rendering_context(), "grid rendering context should not be empty"
+        assert [] != g.get_rendering_context(), \
+            "grid rendering context should not be empty"
 
     def test_typo_ngpus(self):
         """test common typo picongpu_ngpus instead of picongpu_n_gpus"""
         with self.assertRaisesRegex(TypeError, ".*Unexpected.*ngpus.*"):
-            grid = picmi.Cartesian3DGrid(
+            picmi.Cartesian3DGrid(
                 number_of_cells=[192, 2048, 12],
                 lower_bound=[0, 0, 0],
                 upper_bound=[3.40992e-5, 9.07264e-5, 2.1312e-6],
                 lower_boundary_conditions=['open', 'open', 'periodic'],
                 upper_boundary_conditions=['open', 'open', 'periodic'],
-                picongpu_ngpus=None) # common typo ngpus instead of picongpu_n_gpus
+                picongpu_ngpus=None)  # common typo no underscore
 
     def test_n_gpus_type(self):
         """test wrong input type for picongpu_n_gpus"""
         for not_ngpus_type in [1, 1., 1.2, "abc", tuple([1])]:
-            with self.assertRaisesRegex(TypeError, ".*type of argument \"picongpu_n_gpus\" must be one of \(List\[int\], NoneType\).*"):
-                grid = picmi.Cartesian3DGrid(
-                    number_of_cells=[192, 2048, 12],lower_bound=[0, 0, 0],
+            with self.assertRaisesRegex(TypeError,
+                                        ".*type of argument .*picongpu_n_gpus\
+                                        .* must be one of.*"):
+                picmi.Cartesian3DGrid(
+                    number_of_cells=[192, 2048, 12],
+                    lower_bound=[0, 0, 0],
                     upper_bound=[3.40992e-5, 9.07264e-5, 2.1312e-6],
                     lower_boundary_conditions=['open', 'open', 'periodic'],
                     upper_boundary_conditions=['open', 'open', 'periodic'],
@@ -44,10 +48,12 @@ class TestCartesian3DGrid(unittest.TestCase):
 
     def test_n_gpus_asserts(self):
         """test too many GPUs for grid"""
-        for not_ngpus_dist in [[1,1,2], [5,1,1], [1,512,1]]:
-            with self.assertRaisesRegex(Exception, ".*GPU- and/or super-cell-distribution.*"):
+        for not_ngpus_dist in [[1, 1, 2], [5, 1, 1], [1, 512, 1]]:
+            with self.assertRaisesRegex(Exception,
+                                        ".*GPU- and/or super-cell-.*"):
                 grid = picmi.Cartesian3DGrid(
-                    number_of_cells=[192, 2048, 12],lower_bound=[0, 0, 0],
+                    number_of_cells=[192, 2048, 12],
+                    lower_bound=[0, 0, 0],
                     upper_bound=[3.40992e-5, 9.07264e-5, 2.1312e-6],
                     lower_boundary_conditions=['open', 'open', 'periodic'],
                     upper_boundary_conditions=['open', 'open', 'periodic'],
@@ -56,13 +62,14 @@ class TestCartesian3DGrid(unittest.TestCase):
 
     def test_n_gpus_wrong_numbers(self):
         """test negativ numbers or zero as number of gpus"""
-        for not_ngpus_dist in [[0], [1,1,0], [-1], [-1,1,1], [-7]]:
-            with self.assertRaisesRegex(Exception, ".*number of gpus must be positive integer.*"):
+        for not_ngpus_dist in [[0], [1, 1, 0], [-1], [-1, 1, 1], [-7]]:
+            with self.assertRaisesRegex(Exception,
+                                        ".*number of gpus must be positive.*"):
                 grid = picmi.Cartesian3DGrid(
-                    number_of_cells=[192, 2048, 12],lower_bound=[0, 0, 0],
+                    number_of_cells=[192, 2048, 12],
+                    lower_bound=[0, 0, 0],
                     upper_bound=[3.40992e-5, 9.07264e-5, 2.1312e-6],
                     lower_boundary_conditions=['open', 'open', 'periodic'],
                     upper_boundary_conditions=['open', 'open', 'periodic'],
                     picongpu_n_gpus=not_ngpus_dist)
                 grid.get_as_pypicongpu()
-

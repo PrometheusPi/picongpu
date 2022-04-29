@@ -77,7 +77,8 @@ class Grid3D(RenderedObject):
         assert self.cell_cnt_y > 0, "cell_cnt_y must be greater than 0"
         assert self.cell_cnt_z > 0, "cell_cnt_z must be greater than 0"
         for i in range(3):
-            assert self.n_gpus[i] > 0, "all n_gpus entries must be greater than 0"
+            assert self.n_gpus[i] > 0, \
+                "all n_gpus entries must be greater than 0"
 
         return {
             "cell_size": {

@@ -60,23 +60,26 @@ class TestGrid3D(unittest.TestCase):
         with self.assertRaises(TypeError):
             g.boundary_condition_z = {}
         with self.assertRaises(TypeError):
-            g.n_gpus = [1, 1, 1] # list not accepted - tuple needed
+            g.n_gpus = [1, 1, 1]  # list not accepted - tuple needed
 
     def test_gpu_and_cell_cnt_positive(self):
         """test if n_gpus and cell number s are >0"""
         g = self.g
-        with self.assertRaisesRegex(Exception, ".*cell_cnt_x.*greater than 0.*"):
+        with self.assertRaisesRegex(Exception,
+                                    ".*cell_cnt_x.*greater than 0.*"):
             g.cell_cnt_x = -1
             g._get_serialized()
-        with self.assertRaisesRegex(Exception, ".*cell_cnt_y.*greater than 0.*"):
-            g.cell_cnt_x = 6 # revert changes
+        with self.assertRaisesRegex(Exception,
+                                    ".*cell_cnt_y.*greater than 0.*"):
+            g.cell_cnt_x = 6  # revert changes
             g.cell_cnt_y = -2
             g._get_serialized()
-        with self.assertRaisesRegex(Exception, ".*cell_cnt_z.*greater than 0.*"):
-            g.cell_cnt_y = 7 # revert changes
+        with self.assertRaisesRegex(Exception,
+                                    ".*cell_cnt_z.*greater than 0.*"):
+            g.cell_cnt_y = 7  # revert changes
             g.cell_cnt_z = 0
             g._get_serialized()
-        self.g.cell_cnt_z = 8 # revert changes
+        self.g.cell_cnt_z = 8  # revert changes
         for wrong_n_gpus in [tuple([-1, 1, 1]), tuple([1, 1, 0])]:
             with self.assertRaisesRegex(Exception, ".*greater than 0.*"):
                 g.n_gpus = wrong_n_gpus
@@ -127,6 +130,7 @@ class TestGrid3D(unittest.TestCase):
         self.assertEqual(2, context["gpu_cnt"]["x"])
         self.assertEqual(4, context["gpu_cnt"]["y"])
         self.assertEqual(1, context["gpu_cnt"]["z"])
+
 
 class TestBoundaryCondition(unittest.TestCase):
     def test_cfg_translation(self):

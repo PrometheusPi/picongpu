@@ -59,14 +59,10 @@ else
     # enforce optional dependencies
     CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_openPMD=ON -DPIC_USE_PNGwriter=ON -DPIC_USE_FFTW3=ON"
 
-    # ISAAC together with the example FoilLCT is to complex therefore the CI is always running out of memory.
-    # ISAAC is disabled until someone adds support for alpaka 1.2.0
-    # re-enable tho following code if somene fixes the ISAAC issues.
-    CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=OFF"
     if [[ "$PIC_TEST_CASE_FOLDER" =~ .*FoilLCT.* ]] ; then
          export CI_CPUS=1
-    #elif [ -z "$DISABLE_ISAAC" ] ; then
-    #    CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=ON"
+    elif [ -z "$DISABLE_ISAAC" ] ; then
+        CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=ON"
     fi
 fi
 

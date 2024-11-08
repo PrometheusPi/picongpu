@@ -23,7 +23,13 @@
 
 #if(ENABLE_ISAAC == 1) && (SIMDIM == DIM3)
 
-#    include "picongpu/param/isaac.param"
+// clang-format off
+
+#    include "picongpu/plugins/output/param.hpp"
+#include "picongpu/param/isaac.param"
+
+// clang-format on
+
 #    include "picongpu/particles/filter/filter.hpp"
 #    include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
 #    include "picongpu/plugins/ILightweightPlugin.hpp"

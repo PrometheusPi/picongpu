@@ -88,21 +88,15 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser):
             **kw,
         )
 
-    def get_as_pypicongpu(self) -> laser.GaussianLaser:
-        util.unsupported("laser name", self.name)
-        util.unsupported("laser zeta", self.zeta)
-        util.unsupported("laser beta", self.beta)
-        util.unsupported("laser phi2", self.phi2)
-        # unsupported: fill_in (do not warn, b/c we don't know if it has been
-        # set explicitly, and always warning is bad)
-
+    def check(self) -> None:
+        # polarization direction is normalized
         assert self.testRelativeError(
             1,
             self.scalarProduct(self.polarization_direction, self.polarization_direction),
             1e-9,
         ), "the polarization direction vector must be normalized"
 
-        # check for excessive phase values to avoid numerical precision errors
+        # phase values not excessive to avoid numerical precision errors
         assert abs(self.picongpu_phase) <= 2 * math.pi, "abs(phase) must be < 2*pi"
 
         # check that initialising from y_min-plane only is sensible
@@ -111,37 +105,40 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser):
         ), "laser propagation parallel to the y-plane or pointing outside \
             from the inside of the simulation box is not supported by this \
             laser in PIConGPU"
+
+        # propagation direction is normalized
         assert self.testRelativeError(
             1,
-            (
-                self.propagation_direction[0] ** 2
-                + self.propagation_direction[1] ** 2
-                + self.propagation_direction[2] ** 2
-            ),
+            self.scalarProduct(self.propagation_direction, self.propagation_direction),
             1e-9,
         ), "propagation vector must be normalized"
 
-        # check centroid outside box
+        # centroid outside box
         assert self.centroid_position[1] <= 0, "the laser maximum must be \
             outside of the \
             simulation box, otherwise it is impossible to correctly initialize\
             it using a huygens surface in the box, centroid_y <= 0"
+
         # @todo implement check that laser field strength sufficiently small
         # at simulation box boundary
         # @todo extend this to other propagation directions than +y
 
-
-        # check polarization vector normalization
-
+        # polarization vector normalization
         assert self.testRelativeError(
             1,
-            (
-                self.propagation_direction[0] ** 2
-                + self.propagation_direction[1] ** 2
-                + self.propagation_direction[2] ** 2
-            ),
+            self.scalarProduct(self.propagation_direction, self.propagation_direction),
             1e-9,
         ), "polarization vector must be normalized"
+
+    def get_as_pypicongpu(self) -> laser.GaussianLaser:
+        util.unsupported("laser name", self.name)
+        util.unsupported("laser zeta", self.zeta)
+        util.unsupported("laser beta", self.beta)
+        util.unsupported("laser phi2", self.phi2)
+        # unsupported: fill_in (do not warn, b/c we don't know if it has been
+        # set explicitly, and always warning is bad)
+
+        self.check()
 
         pypicongpu_laser = laser.GaussianLaser()
         pypicongpu_laser.wavelength = self.wavelength
@@ -151,14 +148,18 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser):
         pypicongpu_laser.phase = self.picongpu_phase
         pypicongpu_laser.E0 = self.E0
 
-        pypicongpu_laser.pulse_init = (-2.0 * self.centroid_position[1] 
-                                       / (self.propagation_direction[1] * constants.c) 
-                                       / self.duration) # unit: multiple of laser pulse duration
+        # unit: multiple of laser pulse duration
+        pypicongpu_laser.pulse_init = (
+            -2.0 * self.centroid_position[1] / (self.propagation_direction[1] * constants.c) / self.duration
+        )
+
         # @todo extend this to other propagation directions than +y
-        if pypicongpu_laser.pulse_init < 3.:
-            logging.warning("set centroid_position and propagation_direction indicate that laser "
-                            + "initalization might be too short.\n"
-                            + f"Details: laser.pulse_init = {pypicongpu_laser.pulse_init} < 3")
+        if pypicongpu_laser.pulse_init < 3.0:
+            logging.warning(
+                "set centroid_position and propagation_direction indicate that laser "
+                + "initalization might be too short.\n"
+                + f"Details: laser.pulse_init = {pypicongpu_laser.pulse_init} < 3"
+            )
 
         pypicongpu_laser.polarization_type = self.picongpu_polarization_type
         pypicongpu_laser.polarization_direction = self.polarization_direction

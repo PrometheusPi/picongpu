@@ -8,11 +8,12 @@ License: GPLv3+
 from picongpu import picmi
 from picongpu import pypicongpu
 import numpy as np
-from scipy.constants import c
+from scipy.constants import c, elementary_charge
 import logging
 import datetime
 
 from picongpu.pypicongpu.output.png import EMFieldScaleEnum, ColorScaleEnum
+from picongpu.picmi.diagnostics import binning
 
 # set log level:
 # options (in ascending order) are: DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -148,6 +149,38 @@ sim = picmi.Simulation(
 
 for species, layout in species_list:
     sim.add_species(species, layout=layout)
+
+
+# define e-spec binning plugin
+def computeEnergy(particle):
+    E_kin = particle.get("kinetic energy")
+    return E_kin
+
+
+def computeCharge(particle):
+    weighting = particle.get("weighting")
+    return weighting * elementary_charge
+
+
+energyFunctor = binning.BinningFunctor(name="energy", functor=computeEnergy, return_type=float)
+
+energyRange = binning.BinSpec("linear", 0.0, 1000, 512)  # unclear what unit this will be in
+
+energyAxis = binning.BinningAxis(functor=energyFunctor, bin_spec=energyRange, name="energy")
+
+eSpec_deposition_functor = binning.BinningFunctor(
+    name="eSpec",
+    functor=computeCharge,
+    return_type=float,
+)
+
+eSPec_binning = binning.Binning(
+    name="eSpec",
+    deposition_functor=eSpec_deposition_functor,
+    axes=[energyAxis],
+    species=species,
+)
+
 
 sim.diagnostics = [
     picmi.diagnostics.PhaseSpace(

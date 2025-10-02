@@ -9,6 +9,7 @@ from picongpu import picmi
 from picongpu import pypicongpu
 import numpy as np
 from scipy.constants import c, elementary_charge
+import sympy
 import logging
 import datetime
 
@@ -157,16 +158,24 @@ def computeEnergy(particle):
     return E_kin
 
 
+def computeAngle(particle):
+    px, py, pz = particle.get("momentum")
+    return sympy.atan2(px, py)
+
+
 def computeCharge(particle):
     weighting = particle.get("weighting")
     return weighting * elementary_charge
 
 
 energyFunctor = binning.BinningFunctor(name="energy", functor=computeEnergy, return_type=float)
+thetaFunctor = binning.BinningFunctor(name="theta", functor=computeAngle, return_type=float)
 
 energyRange = binning.BinSpec("linear", 0.0, 1000, 512)  # unclear what unit this will be in
+thetaRange = binning.BinSpec("linear", -0.1, +0.1, 256)  # unclear what unit this will be in
 
 energyAxis = binning.BinningAxis(functor=energyFunctor, bin_spec=energyRange, name="energy")
+thetaAxis = binning.BinningAxis(functor=thetaFunctor, bin_spec=thetaRange, name="theta")
 
 eSpec_deposition_functor = binning.BinningFunctor(
     name="eSpec",
@@ -177,12 +186,14 @@ eSpec_deposition_functor = binning.BinningFunctor(
 eSPec_binning = binning.Binning(
     name="eSpec",
     deposition_functor=eSpec_deposition_functor,
-    axes=[energyAxis],
+    axes=[energyAxis, thetaAxis],
     species=species,
+    period=picmi.diagnostics.TimeStepSpec[::100],
 )
 
 
 sim.diagnostics = [
+    eSPec_binning,
     picmi.diagnostics.PhaseSpace(
         species=electrons,
         # Resulting values for period:

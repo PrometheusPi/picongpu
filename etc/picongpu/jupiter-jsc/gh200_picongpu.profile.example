@@ -43,6 +43,8 @@ function module ()
     return $__lmod_my_status
 }
 
+JUMO_USRCMD_EXEC="/usr/libexec/jutil-exe"
+
 function jutil ()
 {
     if [ $# -gt 1 ] && [ "$1" = "env" ]; then

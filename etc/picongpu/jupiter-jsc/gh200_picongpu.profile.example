@@ -9,7 +9,7 @@ export MY_MAILNOTIFY="NONE"
 export MY_MAIL="someone@example.com"
 export MY_NAME="$(whoami) <$MY_MAIL>"
 
-. $HOME/.bashrc
+#. $HOME/.bashrc
 
 # Project Information ######################################## (edit these lines)
 #   - project and account for allocation

@@ -28,6 +28,7 @@ export PIC_NODE_OVERSUBSCRIPTION_PT=2
 # There are a lot of required modules already loaded when connecting
 # such as mpi, libfabric and others.
 # The following modules just add to these.
+export MODULEPATH=/sw/frontier/spack-envs/modules/cce/18.0.1/cray-mpich-8.1.31/cce-18.0.1:/sw/frontier/spack-envs/modules/cce/18.0.1/cce-18.0.1:/sw/frontier/spack-envs/modules/Core/25.03:/opt/cray/pe/lmod/modulefiles/mpi/crayclang/17.0/ofi/1.0/cray-mpich/8.0:/opt/cray/pe/lmod/modulefiles/comnet/crayclang/17.0/ofi/1.0:/opt/cray/pe/lmod/modulefiles/compiler/crayclang/17.0:/opt/cray/pe/lmod/modulefiles/mix_compilers:/opt/cray/pe/lmod/modulefiles/perftools/24.11.0:/opt/cray/pe/lmod/modulefiles/net/ofi/1.0:/opt/cray/pe/lmod/modulefiles/cpu/x86-trento/1.0:/opt/cray/pe/modulefiles/Linux:/opt/cray/pe/modulefiles/Core:/opt/cray/pe/lmod/lmod/modulefiles/Core:/opt/cray/pe/lmod/modulefiles/core:/opt/cray/pe/lmod/modulefiles/craype-targets/default:/sw/frontier/modulefiles:/opt/cray/modulefiles
 source /opt/cray/pe/lmod/lmod/init/bash
 module load cce/20.0.0
 module load craype-accel-amd-gfx940

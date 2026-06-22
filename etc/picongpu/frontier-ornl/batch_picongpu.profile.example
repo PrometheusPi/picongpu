@@ -28,7 +28,7 @@ export PIC_NODE_OVERSUBSCRIPTION_PT=2
 # There are a lot of required modules already loaded when connecting
 # such as mpi, libfabric and others.
 # The following modules just add to these.
-
+source /opt/cray/pe/lmod/lmod/init/bash
 module load cce/20.0.0
 module load craype-accel-amd-gfx940
 module load rocm/6.4.2
